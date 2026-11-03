@@ -1,0 +1,50 @@
+Abschnitt I-1 Allgemeine Sicherheitsverantwortung im naturwissenschaftlichen und technischen Unterricht
+(1) Die Schulleiterin oder der Schulleiter trägt die Gesamtverantwortung für die Sicherheit und den Gesundheitsschutz an der Schule. Sie oder er bestellt für die naturwissenschaftlichen Fachbereiche (Chemie, Physik, Biologie) und das Fach Technik/Werken fachkundige Sicherheitsbeauftragte bzw. Gefahrstoffbeauftragte.
+(2) Jede Fachlehrkraft ist während ihres Unterrichts persönlich für die Einhaltung der Sicherheitsbestimmungen, die ordnungsgemäße Durchführung von Experimenten und die Beaufsichtigung der Schülerinnen und Schüler verantwortlich.
+(3) Bei baulichen Mängeln, defekten Sicherheitsabzügen oder beschädigten Not-Aus-Schaltern ist der Fachraum unverzüglich für den praktischen Schülerbetrieb zu sperren und die Schulleitung schriftlich zu unterrichten.
+
+Abschnitt I-2 Jährliche Sicherheitsunterweisung aller Schülerinnen und Schüler
+(1) Zu Beginn jedes Schuljahres sowie vor der erstmaligen Aufnahme praktischer experimenteller Tätigkeiten müssen alle Schülerinnen und Schüler in den Verhaltens- und Sicherheitsregeln der Fachräume belehrt werden.
+(2) Die Belehrung umfasst Verhaltensweisen im Brand- und Notfall, Not-Aus-Schalter, Notduschen und Augenduschen, Fluchtwege, den Umgang mit Gefahrstoffen sowie das Tragen von Schutzausrüstung.
+(3) Die Durchführung der Sicherheitsunterweisung ist zwingend im Klassenbuch oder digitalen Kursbuch unter Angabe des Datums und der behandelten Inhalte zu dokumentieren und von den Schülerinnen und Schülern schriftlich zu bestätigen.
+
+Abschnitt I-3 Gefahrstoffkataster via DEGINTU und zwingende Substitutionsprüfung
+(1) Alle an der Schule vorhandenen Gefahrstoffe müssen vollständig in einem aktuellen Gefahrstoffkataster erfasst sein. In Thüringen ist hierfür das webbasierte System DEGINTU (DGUV-Gefahrstoffinformationssystem für Schulen) verpflichtend zu nutzen.
+(2) Das Gefahrstoffverzeichnis ist mindestens einmal jährlich durch die Gefahrstoffbeauftragte oder den Gefahrstoffbeauftragten auf Vollständigkeit, Kennzeichnung und Verfallsdaten zu überprüfen.
+(3) Vor der Durchführung jedes chemischen Experiments hat die Lehrkraft eine dokumentierte Substitutionsprüfung durchzuführen: Ist ein Gefahrstoff durch einen weniger gefährlichen Stoff ersetzbar, muss die Ersatzsubstanz gewählt werden.
+
+Abschnitt I-4 Persönliche Schutzausrüstung und ausnahmslose Schutzbrillenpflicht
+(1) Bei allen experimentellen Tätigkeiten mit gefährlichen Stoffen, bei Spritzgefahr von Säuren, Laugen oder heißen Flüssigkeiten sowie bei Splittergefahr müssen ausnahmslos alle im Fachraum anwesenden Personen (Schüler, Lehrkräfte, Praktikanten) eine zugelassene Schutzbrille mit Seitenschutz tragen.
+(2) Brillenträger müssen Überbrillen oder optisch korrigierte Schutzbrillen tragen.
+(3) Bei Tätigkeiten mit ätzenden Stoffen ist zusätzlich ein geschlossener Baumwoll-Schutzkittel zu tragen.
+
+Abschnitt I-5 Chemikalienlagerung in Fachräumen und Sammlungen
+(1) Sammlungsräume und Vorbereitungsräume für Chemie, Physik und Biologie sind stets verschlossen zu halten. Schüler dürfen diese Räume nur in Anwesenheit und unter Aufsicht der Fachlehrkraft betreten.
+(2) Akut toxische Stoffe (Totenkopfsymbol) sowie krebserzeugende, erbgutverändernde oder fortpflanzungsgefährdende Stoffe (CMR-Stoffe der Kategorien 1A und 1B) müssen in einem separaten, verschlossenen Giftschrank gelagert werden. Der Schlüssel darf nur den Fachlehrkräften zugänglich sein.
+(3) Säuren und Laugen sind getrennt voneinander in korrosionsbeständigen Sicherheitsschränken mit kontinuierlicher technischer Entlüftung (Abluft) zu lagern.
+(4) Brennbare Flüssigkeiten sind in feuerwiderstandsfähigen Sicherheitsschränken (Typ F90 nach DIN EN 14470-1) aufzubewahren.
+
+Abschnitt I-6 Digestorien und Abzugsanlagen
+(1) Experimente, bei denen gesundheitsschädliche, giftige, ätzende oder brennbare Gase, Dämpfe oder Stäube freigesetzt werden können (z. B. Chlor, Brom, Stickoxide, Schwefeldioxid), dürfen ausnahmslos nur im funktionstüchtigen Abzug (Digestorium) durchgeführt werden.
+(2) Der Abzug muss mit heruntergezogener Frontscheibe betrieben werden.
+(3) Schulische Abzugsanlagen müssen mindestens einmal jährlich durch eine befähigte Fachkraft (TÜV, DEKRA oder Wartungsdienst) auf Strömungsgeschwindigkeit und Funktionsfähigkeit überprüft werden. Die gültige Prüfplakette muss am Abzug sichtbar angebracht sein.
+
+Abschnitt II-1 Physikunterricht und Lasersicherheit
+(1) Im Physikunterricht an Regelschulen dürfen für Schülerversuche und Demonstrationsversuche ausschließlich Laser der Klassen 1, 1M, 2 und 2M nach DIN EN 60825-1 verwendet werden.
+(2) Die Verwendung von Lasern der Klassen 3R, 3B und 4 ist an Thüringer Regelschulen für Lehrkräfte und Schüler verboten.
+(3) Bei Versuchen mit elektrischer Energie sind im Schülerversuch Spannungen über 25 Volt Wechselspannung (AC) bzw. 60 Volt Gleichspannung (DC) unzulässig (Schutzkleinspannung).
+
+Abschnitt II-2 Biologieunterricht und biologische Sicherheitsstufen
+(1) Versuche mit menschlichem Blut, Blutserum, Speichel, Zahnbelag oder anderen Körperflüssigkeiten sind an Schulen wegen des Infektionsrisikos (z. B. Hepatitis, HIV) strengstens verboten.
+(2) Die Kultivierung von Mikroorganismen (Bakterien, Pilze) darf ausschließlich mit apathogenen Stämmen der Risikogruppe 1 erfolgen. Das Anlegen von Wildstämmen aus der Umwelt ist nur in dicht verschlossenen, versiegelten Petrischalen zulässig, die nach dem Versuch ohne Öffnen autoklaviert oder sachgerecht entsorgt werden.
+(3) Versuche an lebenden Wirbeltieren, die mit Schmerzen, Leiden oder Schäden verbunden sind, sind tierschutzrechtlich verboten.
+
+Abschnitt II-3 Werken und Technik: Maschinensicherheit und Kleiderordnung
+(1) Bei Arbeiten an rotierenden Werkzeugmaschinen (z. B. Standbohrmaschinen, Drehbänken, Fräsen, Schleifböcken) ist das Tragen von Handschuhen strengstens verboten (Einzugsgefahr der Finger!).
+(2) Lange Haare müssen durch ein Haarnetz, eine Mütze oder einen festen Zopf eng am Kopf zusammengebunden werden.
+(3) Weite Ärmel, Schals, Krawatten und hängender Schmuck (Ketten, Ringe, Armbänder) müssen vor Arbeitsbeginn abgelegt oder sicher verstaut werden.
+
+UKT Vorschrift 81 Gesetzlicher Unfallschutz, Meldepflichten und Verbandbuch
+(1) Schülerinnen und Schüler stehen während des Unterrichts, auf dem direkten Schulweg sowie bei allen schulischen Veranstaltungen unter dem Schutz der gesetzlichen Unfallversicherung bei der Unfallkasse Thüringen (UKT).
+(2) Jeder Schulunfall, der eine ärztliche Behandlung nach sich zieht oder zu einer Arbeits- bzw. Schulunfähigkeit von mehr als drei Tagen führt, muss unverzüglich, spätestens innerhalb von drei Tagen, auf dem amtlichen Unfallanzeige-Formular an die Unfallkasse Thüringen gemeldet werden.
+(3) Jede Erste-Hilfe-Leistung in der Schule (auch bei kleinen Schürf- oder Schnittwunden) muss mit Datum, Uhrzeit, Hergang, Name des Verletzten und Name des Ersthelfers im Verbandbuch dokumentiert werden. Die Dokumentation ist fünf Jahre lang aufzubewahren, um eventuelle Spätfolgen abzusichern.

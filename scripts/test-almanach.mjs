@@ -37,15 +37,15 @@ assert(fs.existsSync(path.join(projectRoot, 'public', 'icon.svg')), 'PWA Icon ex
 // 2. Rechtsdokumente im Korpus prüfen
 const corpus = fs.readFileSync(path.join(projectRoot, 'src', 'data', 'legalCorpus.ts'), 'utf8');
 
-assert(corpus.includes('§ 51 Abs. 2 & 3 ThürSchulG'), '§ 51 ThürSchulG (Ordnungsmaßnahmen) ist enthalten');
+assert(corpus.includes('§ 51 ThürSchulG'), '§ 51 ThürSchulG (Ordnungsmaßnahmen) ist enthalten');
 assert(corpus.includes('§ 56 ThürSchulO'), '§ 56 ThürSchulO (Klassenarbeiten) ist enthalten');
 assert(corpus.includes('§ 57 ThürSchulO'), '§ 57 ThürSchulO (Hausaufgaben) ist enthalten');
-assert(corpus.includes('Wanderrichtlinie Ziff. 4'), 'Wanderrichtlinie (Freiplatzverbot) ist enthalten');
-assert(corpus.includes('RISU Abschnitt I-3'), 'RISU (Schutzbrillenpflicht & DEGINTU) ist enthalten');
+assert(corpus.includes('Ziffer 4 Wanderrichtlinie') && corpus.includes('Freiplatz'), 'Wanderrichtlinie (Freiplatzverbot) ist enthalten');
+assert(corpus.includes('Abschnitt I-3') && corpus.includes('DEGINTU'), 'RISU (Schutzbrillenpflicht & DEGINTU) ist enthalten');
 assert(corpus.includes('26 Pflichtstunden'), 'ThürLehrAzVO (26 Pflichtstunden Regelschule) ist enthalten');
 assert(corpus.includes('Montag und Freitag'), 'Duales Lehramtsstudium (Praxistage Mo & Fr) ist enthalten');
 assert(corpus.includes('ThILLM'), 'Seiteneinsteiger-Vorkurs ist enthalten');
-assert(corpus.includes('Hausordnung HBS Kahla'), 'Hausordnung Heimbürgeschule Kahla ist enthalten');
+assert(corpus.includes('HBS Hausordnung'), 'Hausordnung Heimbürgeschule Kahla ist enthalten');
 
 console.log('');
 console.log(`Ergebnis: ${passedTests} von ${totalTests} Tests erfolgreich absolviert.`);

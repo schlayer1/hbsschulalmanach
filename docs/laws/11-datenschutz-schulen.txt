@@ -1,0 +1,18 @@
+Ziffer 1 Dienstliche mobile Endgeräte und Dienst-iPads
+(1) Lehrkräfte, die ein vom Schulträger oder Land bereitgestelltes mobiles Dienstgerät (z. B. Dienst-iPad) für dienstliche Zwecke nutzen, unterliegen strengen datenschutzrechtlichen Sicherungspflichten nach Art. 32 DSGVO und dem Thüringer Datenschutzgesetz (ThürDSG).
+(2) Das Dienstgerät muss zwingend mit einem mindestens 6-stelligen Sperrcode oder biometrischer Authentifizierung (Face ID / Touch ID) gesichert sein. Die automatische Bildschirmsperre ist auf maximal zwei Minuten Inaktivität einzustellen.
+(3) Die Geräte werden zentral über das Mobile Device Management (MDM) der Schule oder des Schulträgers verwaltet. Das Umgehen von MDM-Sicherheitsrichtlinien („Jailbreak“) ist verboten und führt zum sofortigen Entzug des Gerätes.
+
+Ziffer 2 Notenlisten, Schülerdaten und Verbot privater Cloud-Speicher
+(1) Personenbezogene Daten von Schülerinnen, Schülern und Erziehungsberechtigten (insbesondere Namen, Adressen, Geburtsdaten, Fehlzeiten, Förderpläne und Notenlisten) unterliegen der Amtsverschwiegenheit und dem besonderen Schutz des Schuldatenschutzes.
+(2) Die Speicherung von Noten, Zeugnisentwürfen oder Schülerakten auf privaten, unverschlüsselten USB-Sticks, privaten Laptops oder in privaten Cloud-Diensten (z. B. privates Google Drive, iCloud, Dropbox, OneDrive) ist ausnahmslos verboten.
+(3) Für die digitale Notenverwaltung und Dokumentation dürfen ausschließlich die vom Land Thüringen freigegebenen Schulverwaltungsprogramme (z. B. Notenmodul im Thüringer Schulportal) oder lokal verschlüsselte Schulserver verwendet werden.
+
+Ziffer 3 Foto-, Video- und Tonaufnahmen von Schülerinnen und Schülern
+(1) Das Anfertigen und Veröffentlichen von Foto-, Video- oder Tonaufnahmen von Schülerinnen und Schülern (z. B. für die Schul-Website, Jahresberichte, Social Media oder Presseberichte) ist nur mit einer vorherigen schriftlichen Einwilligung der Erziehungsberechtigten zulässig (Art. 6 Abs. 1 lit. a DSGVO).
+(2) Hat die Schülerin oder der Schüler das 14. Lebensjahr vollendet, ist neben der Einwilligung der Eltern zwingend auch die persönliche schriftliche Einwilligung der Schülerin oder des Schülers erforderlich.
+(3) Bei Veröffentlichungen im Internet oder auf Flyern dürfen Schülernamen im Regelfall nur mit dem Vornamen oder ohne Namensnennung genannt werden. Eine Verknüpfung von Foto und vollem Vor- und Nachnamen sowie Wohnort ist unzulässig.
+
+Ziffer 4 Messenger und digitale Kommunikation mit Eltern
+(1) Die Kommunikation mit Eltern sowie Schülerinnen und Schülern über außereuropäische kommerzielle Messenger-Dienste (wie WhatsApp oder Telegram) ist für dienstliche Angelegenheiten, Notenübermittlungen oder Krankmeldungen datenschutzrechtlich unzulässig.
+(2) Für die dienstliche elektronische Kommunikation sind die offizielle dienstliche E-Mail-Adresse der Lehrkraft (@schule.thueringen.de) sowie die vom Land bereitgestellten Plattformen (Thüringer Schulportal, Thüringer Schulcloud / itslearning) zu verwenden.
