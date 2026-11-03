@@ -1,0 +1,17 @@
+{
+  "name": "HBS Schulalmanach",
+  "short_name": "Almanach",
+  "description": "Thüringer Schulrecht, VVOrg, RISU und Richtlinien für die Heimbürgeschule Kahla",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#006185",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
