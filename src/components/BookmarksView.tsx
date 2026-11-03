@@ -182,15 +182,17 @@ export const BookmarksView: React.FC<BookmarksViewProps> = ({
                 {isAnswer && answerData && (
                   <div className="space-y-2">
                     <p className="text-xs sm:text-sm text-school-textMain dark:text-slate-200 font-semibold bg-emerald-50/70 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200/80">
-                      Fazit: {answerData.quickConclusion}
+                      Fazit: {answerData.quickConclusion || 'Rechtliche Auswertung hinterlegt.'}
                     </p>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {answerData.citations.map((c, idx) => (
-                        <span key={idx} className="text-[11px] font-bold text-school-primary dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50 px-2.5 py-1 rounded-lg border border-sky-200 dark:border-sky-800">
-                          {c.paragraph}
-                        </span>
-                      ))}
-                    </div>
+                    {Array.isArray(answerData.citations) && answerData.citations.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {answerData.citations.map((c, idx) => (
+                          <span key={idx} className="text-[11px] font-bold text-school-primary dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50 px-2.5 py-1 rounded-lg border border-sky-200 dark:border-sky-800">
+                            {c.paragraph}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

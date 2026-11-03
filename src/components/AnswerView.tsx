@@ -216,12 +216,12 @@ export const AnswerView: React.FC<AnswerViewProps> = ({
             </div>
           </div>
           <span className="text-xs font-bold text-school-primary dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-1 rounded-lg border border-sky-200 dark:border-sky-800">
-            {answer.citations.length} Fundstellen
+            {(answer.citations || []).length} Fundstellen
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-          {answer.citations.map((citation) => (
+          {(answer.citations || []).map((citation) => (
             <div
               key={citation.id}
               onClick={() => onOpenCitation(citation)}

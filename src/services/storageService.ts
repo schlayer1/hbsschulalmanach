@@ -38,13 +38,21 @@ export function saveBookmark(title: string, data: AiAnswer | LegalChunk, type: '
     data,
   };
   bookmarks.unshift(newItem);
-  localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(bookmarks));
+  try {
+    localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(bookmarks));
+  } catch (e) {
+    console.warn('Lesezeichen konnte nicht lokal gespeichert werden:', e);
+  }
   return newItem;
 }
 
 export function removeBookmark(id: string): void {
   const bookmarks = getBookmarks().filter(b => b.id !== id);
-  localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(bookmarks));
+  try {
+    localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(bookmarks));
+  } catch (e) {
+    console.warn('Lesezeichen konnte nicht entfernt werden:', e);
+  }
 }
 
 // 2. Custom Documents (Schul-Pflegebereich)
@@ -66,13 +74,21 @@ export function saveCustomDocument(doc: Omit<CustomDocument, 'id' | 'uploadedAt'
     uploadedAt: new Date().toISOString(),
   };
   docs.unshift(newDoc);
-  localStorage.setItem(STORAGE_KEYS.CUSTOM_DOCS, JSON.stringify(docs));
+  try {
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_DOCS, JSON.stringify(docs));
+  } catch (e) {
+    console.warn('Dokument konnte nicht lokal gespeichert werden:', e);
+  }
   return newDoc;
 }
 
 export function deleteCustomDocument(id: string): void {
   const docs = getCustomDocuments().filter(d => d.id !== id);
-  localStorage.setItem(STORAGE_KEYS.CUSTOM_DOCS, JSON.stringify(docs));
+  try {
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_DOCS, JSON.stringify(docs));
+  } catch (e) {
+    console.warn('Dokument konnte nicht gelöscht werden:', e);
+  }
 }
 
 // 3. Settings
@@ -88,7 +104,11 @@ export function getAppSettings(): AppSettings {
 export function saveAppSettings(settings: Partial<AppSettings>): AppSettings {
   const current = getAppSettings();
   const updated = { ...current, ...settings };
-  localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+  try {
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Einstellungen konnten nicht lokal gespeichert werden:', e);
+  }
   return updated;
 }
 
@@ -106,11 +126,19 @@ export function addQueryHistory(query: string): void {
   if (!query || query.trim().length === 0) return;
   const history = getQueryHistory().filter(q => q.toLowerCase() !== query.toLowerCase());
   history.unshift(query.trim());
-  localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history.slice(0, 15)));
+  try {
+    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history.slice(0, 15)));
+  } catch (e) {
+    console.warn('Suchverlauf konnte nicht aktualisiert werden:', e);
+  }
 }
 
 export function clearQueryHistory(): void {
-  localStorage.removeItem(STORAGE_KEYS.HISTORY);
+  try {
+    localStorage.removeItem(STORAGE_KEYS.HISTORY);
+  } catch (e) {
+    // ignore
+  }
 }
 
 // 5. MDM-Resilienz: Backup Export & Import (JSON)
