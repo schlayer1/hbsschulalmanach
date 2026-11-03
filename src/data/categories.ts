@@ -28,7 +28,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
   fahrten: {
     id: 'fahrten',
     name: 'Wandertage & Schulfahrten',
-    shortDesc: 'Wanderrichtlinie Thüringen, Genehmigungsverfahren Schulleitung, Reisekosten, Freiplatzverbot & Baden',
+    shortDesc: 'VV Wandertage und Klassenfahrten (LaaO), ThVPS-Genehmigung, Reisekosten ThürRKG, Freiplatzverbot & Schwimmsicherheit',
     icon: 'Compass',
     badgeColor: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800',
     borderHover: 'hover:border-amber-400',

@@ -29,7 +29,7 @@ async function verifyCitationDrawerExactMatch() {
 
   // Suche nach Schülerausschluss / Schulfahrt
   const searchInput = await page.$('input[type="text"]');
-  await searchInput.type('Darf ich einen Schüler von einer Schulfahrt ausschließen Ziffer 7');
+  await searchInput.type('Darf ich einen Schüler von einer Schulfahrt ausschließen Abschnitt VII VV Wandertage');
   await page.click('button[type="submit"]');
 
   // Warten auf Stufe 3 Fundstellen
@@ -70,8 +70,8 @@ async function verifyCitationDrawerExactMatch() {
   console.log('  Text-Vorschau:   ', drawerInfo.lawText.slice(0, 100) + '...');
   console.log('  Offizieller Link:', drawerInfo.linkUrl);
 
-  // Sicherstellen, dass kein Mismatch vorliegt (z. B. Ziffer 7 im Titel, aber Ziffer 3 im Text)
-  if (drawerInfo.headerTitle.includes('Ziffer 7') && drawerInfo.sectionSubtitle.includes('Aufsichtspersonen')) {
+  // Sicherstellen, dass kein Mismatch vorliegt (z. B. Abschnitt VII im Titel, aber Aufsichtspersonen im Text)
+  if (drawerInfo.headerTitle.includes('Abschnitt VII') && drawerInfo.sectionSubtitle.includes('Aufsichtspersonen')) {
     throw new Error('MISMATCH DETECTED: Titel und Text gehören zu unterschiedlichen Abschnitten!');
   }
 

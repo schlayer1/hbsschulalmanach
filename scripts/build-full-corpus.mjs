@@ -1,5 +1,5 @@
 // Automatischer Lückenloser Generator für den Thüringer Regelschul-Rechtskorpus
-// Liest alle 12 Rechtsquellen aus `docs/laws/` ein, parst jeden Paragraphen lückenlos
+// Liest alle 17 verifizierten Rechtsquellen aus `docs/laws/` ein, parst jeden Paragraphen lückenlos
 // und berechnet 768-dimensionale semantische Embeddings (Gemma Embedding 2 Format).
 
 import fs from 'fs';
@@ -52,7 +52,7 @@ function generateSemanticEmbedding(text, tags = []) {
   return Array.from(vector);
 }
 
-// Metadaten der 12 Dokumente
+// Metadaten der 17 verifizierten Dokumente
 const DOC_METADATA = [
   {
     fileName: '01-thuerschulg.txt',
@@ -94,17 +94,17 @@ const DOC_METADATA = [
     tags: ['VVOrg', 'Organisation', 'Vorbereitungswoche', 'Stundentafeln', 'ZPVI', 'Termine', 'Förderpläne']
   },
   {
-    fileName: '04-wanderrichtlinie.txt',
-    id: 'doc-wanderrichtlinie',
-    title: 'Verwaltungsvorschrift für Schulfahrten (Wanderrichtlinie Thüringen)',
-    shortTitle: 'Wanderrichtlinie',
-    legalBasis: 'Verwaltungsvorschrift „Lernen am anderen Ort“ des TMBJS',
+    fileName: '04-vv-wandertage-klassenfahrten.txt',
+    id: 'doc-vv-schulfahrten',
+    title: 'Verwaltungsvorschrift für die Durchführung von Wandertagen und Klassenfahrten (VV Wandertage und Klassenfahrten)',
+    shortTitle: 'VV Wandertage & Klassenfahrten',
+    legalBasis: 'Verwaltungsvorschrift des TMBJS „Lernen am anderen Ort“ (LaaO) vom 10. Dezember 2020 i. d. F. 2024',
     category: 'fahrten',
-    currentVersion: 'Geltende Fassung (Konsolidiert)',
-    lastCheckedDate: '2026-11-03',
-    officialUrl: 'https://bildung.thueringen.de/schule/schulleben/schulfahrten',
-    description: 'Verbindliche Regeln für Wandertage, Klassenfahrten, Schullandheimaufenthalte, Freiplatzverbot und Badeerlaubnisse.',
-    tags: ['Klassenfahrten', 'Wanderrichtlinie', 'Schulfahrten', 'Freiplatzverbot', 'Dienstreise', 'Schwimmen', 'Baden', 'Schülerausschluss']
+    currentVersion: 'Geltende Verwaltungsvorschrift TMBJS (LaaO / ThVPS)',
+    lastCheckedDate: '2026-11-04',
+    officialUrl: 'https://bildung.thueringen.de/schule/schulwesen/schulrecht',
+    description: 'Verbindliche Verwaltungsvorschrift für Wandertage, Klassenfahrten, Genehmigungsverfahren im ThVPS (LaaO), Freiplatzverbot (§ 42 BeamtStG) und Badeerlaubnisse.',
+    tags: ['Wandertage', 'Klassenfahrten', 'VV Wandertage und Klassenfahrten', 'Lernen am anderen Ort', 'LaaO', 'ThVPS', 'Freiplatzverbot', 'Dienstreise', 'Schwimmen', 'Baden', 'Schülerausschluss']
   },
   {
     fileName: '05-risu-ukt.txt',
@@ -224,30 +224,30 @@ const DOC_METADATA = [
     tags: ['Dienstordnung', 'DienstO-L', 'Dienstrecht', 'Aufsichtspflicht', 'Krankmeldung', 'Sprechstunde', 'Verschwiegenheit', 'Dienstantritt']
   },
   {
-    fileName: '14-kinderschutz-sgbviii.txt',
-    id: 'doc-kinderschutz',
-    title: 'Kinderschutz und Schutzauftrag bei Kindeswohlgefährdung (§ 8a SGB VIII)',
-    shortTitle: 'Kinderschutz § 8a SGB VIII',
-    legalBasis: '§ 8a SGB VIII, KKG i. V. m. Thüringer Kinderschutz-Leitfaden für Schulen',
+    fileName: '14-dienstanweisung-gewalt-kinderschutz.txt',
+    id: 'doc-dienstanweisung-gewalt',
+    title: 'Dienstanweisung zum Umgang mit Gewalt und sexualisierter Gewalt an Schulen (Kinderschutz & § 8a SGB VIII)',
+    shortTitle: 'Dienstanweisung Gewalt & Kinderschutz',
+    legalBasis: 'Dienstanweisung des TMBJS vom 26. Mai 2026 i. V. m. § 8a SGB VIII und KKG',
     category: 'sicherheit',
-    currentVersion: 'Handreichung TMBJS & Jugendamt Saale-Holzland',
+    currentVersion: 'Dienstanweisung TMBJS vom 26. Mai 2026 (inkl. Anlagen 4 & 5)',
     lastCheckedDate: '2026-11-04',
-    officialUrl: 'https://bildung.thueringen.de/schule/beratung/kinderschutz',
-    description: 'Verfahren bei gewichtigen Anhaltspunkten für Kindeswohlgefährdung, IseF-Beratung, Meldeweg zum Jugendamt Saale-Holzland-Kreis.',
-    tags: ['Kinderschutz', 'SGB VIII', 'Kindeswohlgefährdung', 'IseF', 'Jugendamt', 'Saale-Holzland', 'Schulsozialarbeit', 'Notfall', 'Gefährdung']
+    officialUrl: 'https://bildung.thueringen.de/schule/schulwesen/schulrecht',
+    description: 'Verbindliche Dienstanweisung zum Vorgehen bei Kindeswohlgefährdung (§ 8a SGB VIII), Meldebögen, Einbindung der IseF und Weiterleitung an das Jugendamt Saale-Holzland-Kreis.',
+    tags: ['Kinderschutz', 'Dienstanweisung', 'Gewaltprävention', 'SGB VIII', 'Kindeswohlgefährdung', 'IseF', 'Jugendamt', 'Saale-Holzland', 'Schulsozialarbeit', 'Notfall', 'Gefährdung', 'Verlaufsdokumentation']
   },
   {
     fileName: '15-nachteilsausgleich-lrs.txt',
     id: 'doc-nachteilsausgleich-lrs',
-    title: 'Nachteilsausgleich und Notenschutz bei LRS und chronischen Erkrankungen',
-    shortTitle: 'VV Nachteilsausgleich / LRS',
-    legalBasis: 'Verwaltungsvorschrift des TMBJS zu Nachteilsausgleich und Notenschutz',
+    title: 'Nachteilsausgleich und Notenschutz bei LRS und chronischen Erkrankungen (Praxishilfe TMBJS)',
+    shortTitle: 'Praxishilfe Nachteilsausgleich & Notenschutz',
+    legalBasis: 'ThürSchulO i. V. m. Praxishilfe Nachteilsausgleich: Vorbeugen – Erkennen – Anwenden (März 2022)',
     category: 'schulrecht',
-    currentVersion: 'Geltende Fassung',
+    currentVersion: 'Praxishilfe TMBJS (März 2022) / ThürSchulO',
     lastCheckedDate: '2026-11-04',
-    officialUrl: 'https://bildung.thueringen.de/schule/foerderung/nachteilsausgleich',
-    description: 'Differenzierung zwischen Nachteilsausgleich (Zeitzugabe, Hilfsmittel - OHNE Zeugnisvermerk) und Notenschutz (mit Zeugnisvermerk).',
-    tags: ['Nachteilsausgleich', 'Notenschutz', 'LRS', 'Legasthenie', 'Förderplan', 'Zeitzugabe', 'Zeugnisvermerk', 'Klassenkonferenz', 'Rechtschreibung']
+    officialUrl: 'https://bildung.thueringen.de/schule/schulwesen/schulrecht',
+    description: 'Praxishilfe und Schulordnung zu Zeitzugabe, Hilfsmitteln (Nachteilsausgleich OHNE Zeugnisvermerk) und Abweichen von den Bewertungsmaßstäben (Notenschutz MIT Zeugnisvermerk).',
+    tags: ['Nachteilsausgleich', 'Notenschutz', 'LRS', 'Legasthenie', 'Förderplan', 'Zeitzugabe', 'Zeugnisvermerk', 'Klassenkonferenz', 'Praxishilfe', 'Rechtschreibung']
   },
   {
     fileName: '16-medikamentengabe-schulen.txt',

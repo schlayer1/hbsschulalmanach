@@ -50,12 +50,12 @@ AMTLICHE_URL: ${c.officialAnchorUrl}`)
 Deine Aufgabe ist es, Kolleginnen und Kollegen im Schulalltag verlässliche, rechtssichere und didaktisch praxistaugliche Auskünfte zu erteilen.
 
 WICHTIGE JURISTISCHE GRUNDSÄTZE:
-1. Erfinde NIEMALS Paragraphen, Gesetze, Fundstellen oder Regelungen! Nutze ausschließlich das Thüringer Schulrecht (ThürSchulG, ThürSchulO, VVOrg, Wanderrichtlinie, RISU / UKT, ThürLehrAzVO, ThürAZStPLVO, ThürPersVG, ThürDSG, DienstO-L, Kinderschutz § 8a SGB VIII, Nachteilsausgleich LRS, Medikamentengabe, Korruptionsprävention/Geschenke) sowie die bereitgestellten Quellen.
+1. Erfinde NIEMALS Paragraphen, Gesetze, Fundstellen oder Regelungen! Nutze ausschließlich das Thüringer Schulrecht (ThürSchulG, ThürSchulO, VVOrg, VV Wandertage und Klassenfahrten, RISU / UKT, ThürLehrAzVO, ThürAZStPLVO, ThürPersVG, ThürDSG, DienstO-L, Dienstanweisung Gewalt & Kinderschutz, Praxishilfe Nachteilsausgleich, Medikamentengabe, Korruptionsprävention/Geschenke) sowie die bereitgestellten Quellen.
 2. Wenn eine Frage nicht eindeutig durch die Quellen beantwortet wird, sage das klar und verweise auf die Schulleitung.
 3. Behalte immer die Thüringer Regelschul-Perspektive bei (z. B. 26 Pflichtstunden, Anspruchsebenen I und II ab Kl. 7).
 
 STRIKTES VERIFIKATIONS-GEBOT FÜR CITATIONS (FUNDSTELLEN):
-- Verwende im Feld "sourceChunkId" AUSSCHLIESSLICH die exakte "QUELLE_ID" aus den oben bereitgestellten Quellen (z. B. "chunk-doc-wanderrichtlinie-7" oder "chunk-doc-thuerschulg-20")!
+- Verwende im Feld "sourceChunkId" AUSSCHLIESSLICH die exakte "QUELLE_ID" aus den oben bereitgestellten Quellen (z. B. "chunk-doc-vv-schulfahrten-7" oder "chunk-doc-thuerschulg-20")!
 - Erfinde KEINE eigenen Paragraphen-Strings, keine Absätze ("Abs. 1") und keine Abkürzungen, die nicht in den Quellen stehen!
 - Zitiere im Feld "quote" wörtlich aus dem "AMTLICHER_TEXT" der Quelle.
 - Wenn keine Quelle zur Frage passt, darf das Array "citations" leer bleiben.
@@ -76,7 +76,7 @@ Du musst die Antwort STRENG ALS VALIDES JSON im folgenden Schema zurückgeben:
   ],
   "citations": [
     {
-      "sourceChunkId": "Exakte QUELLE_ID aus den oben bereitgestellten Quellen, z. B. chunk-doc-wanderrichtlinie-7",
+      "sourceChunkId": "Exakte QUELLE_ID aus den oben bereitgestellten Quellen, z. B. chunk-doc-vv-schulfahrten-7",
       "quote": "Wörtliches Zitat direkt aus dem obigen Text",
       "context": "Kurze Erläuterung der Bedeutung für den Praxisfall"
     }
@@ -167,7 +167,7 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
       // Verifizierte Fundstelle: Alle Daten stammen VERBINDLICH aus der Datenbank!
       enhancedCitations.push({
         id: `cit-${matchedChunk.id}-${idx}`,
-        paragraph: matchedChunk.paragraph, // GARANTIERT ECHT (z.B. "Ziffer 7 Wanderrichtlinie")
+        paragraph: matchedChunk.paragraph, // GARANTIERT ECHT (z.B. "Abschnitt VII VV Wandertage & Klassenfahrten")
         docTitle: matchedChunk.docShortTitle, // GARANTIERT ECHT
         quote: (cit.quote && cit.quote.length > 15) ? cit.quote : matchedChunk.summary,
         context: cit.context || matchedChunk.sectionTitle,

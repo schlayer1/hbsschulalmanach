@@ -30,7 +30,7 @@ const documentsToCheck = [
   { name: 'Thüringer Schulgesetz (ThürSchulG)', id: 'doc-thuerschulg', key: 'ThürSchulG' },
   { name: 'Thüringer Schulordnung (ThürSchulO)', id: 'doc-thuerschulo', key: 'ThürSchulO' },
   { name: 'VVOrg Thüringen', id: 'doc-vvorg', key: 'VVOrg' },
-  { name: 'Wanderrichtlinie Thüringen', id: 'doc-wanderrichtlinie', key: 'Wanderrichtlinie' },
+  { name: 'VV Wandertage & Klassenfahrten (LaaO)', id: 'doc-vv-schulfahrten', key: 'Wandertage' },
   { name: 'RISU / UKT Vorschriften', id: 'doc-risu', key: 'RISU' },
   { name: 'Lehramtsausbildung LAA (ThürAZStPLVO)', id: 'doc-laa-thueringen', key: 'ThürAZStPLVO' },
   { name: 'Seiteneinsteiger-Richtlinie TMBJS', id: 'doc-seiteneinsteiger', key: 'Seiteneinsteiger' },
@@ -40,9 +40,9 @@ const documentsToCheck = [
   { name: 'Datenschutz an Schulen (ThürDSG / DSGVO)', id: 'doc-datenschutz', key: 'Datenschutz' },
   { name: 'Hausordnung Heimbürgeschule Kahla', id: 'doc-hbs-intern', key: 'Heimbürgeschule' },
   { name: 'Dienstordnung Lehrkräfte (DienstO-L)', id: 'doc-diensto-l', key: 'DienstO-L' },
-  { name: 'Kinderschutz (§ 8a SGB VIII & Jugendamt)', id: 'doc-kinderschutz', key: 'Kinderschutz' },
-  { name: 'Nachteilsausgleich & Notenschutz (LRS)', id: 'doc-nachteilsausgleich-lrs', key: 'Nachteilsausgleich' },
-  { name: 'Medikamentengabe & Notfallpläne', id: 'doc-medikamente-schulen', key: 'Medikamentengabe' },
+  { name: 'Dienstanweisung Gewalt & Kinderschutz (§ 8a SGB VIII)', id: 'doc-dienstanweisung-gewalt', key: 'Kinderschutz' },
+  { name: 'Praxishilfe Nachteilsausgleich & Notenschutz (LRS)', id: 'doc-nachteilsausgleich-lrs', key: 'Nachteilsausgleich' },
+  { name: 'Medikamentengabe & Notfallpläne (UKT/TMBJS)', id: 'doc-medikamente-schulen', key: 'Medikamentengabe' },
   { name: 'Geschenke-Richtlinie (ThürBG / BeamtStG)', id: 'doc-geschenke-korruption', key: 'Geschenke-Richtlinie' },
 ];
 

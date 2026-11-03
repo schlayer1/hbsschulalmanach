@@ -110,7 +110,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               Lokale Wissensdatenbank (Heimbürgeschule)
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              12 offizielle Rechtsvorschriften und Richtlinien (ThürSchulG, ThürSchulO, VVOrg, RISU, LAA, Duales Studium, Wanderrichtlinie, ThürLehrAzVO) sind vorindexiert. Paragraphensuchen funktionieren in unter 5 Millisekunden direkt auf dem iPad.
+              17 offizielle Thüringer Rechtsvorschriften und Richtlinien (ThürSchulG, ThürSchulO, VVOrg, VV Wandertage und Klassenfahrten, RISU/UKT, LAA, Seiteneinsteiger, Duales Studium, DienstO-L, Dienstanweisung Gewalt/Kinderschutz, Nachteilsausgleich, Medikamentengabe, Korruptionsprävention, ThürLehrAzVO, ThürPersVG, ThürDSG & HBS Hausordnung) sind lückenlos vorindexiert.
             </p>
           </div>
 
