@@ -32,11 +32,12 @@ export const CitationDrawer: React.FC<CitationDrawerProps> = ({
 
   if (!citation && !chunk) return null;
 
-  const currentParagraph = citation?.paragraph || chunk?.paragraph || 'Fundstelle';
+  // Verbindliche Rechtsdaten aus dem verifizierten Datenbank-Chunk priorisieren
+  const currentParagraph = chunk?.paragraph || citation?.paragraph || 'Fundstelle';
   const currentTitle = chunk?.sectionTitle || citation?.context || 'Rechtsgrundlage';
-  const currentDoc = citation?.docTitle || chunk?.docShortTitle || 'Thüringer Schulrecht';
+  const currentDoc = chunk?.docShortTitle || citation?.docTitle || 'Thüringer Schulrecht';
   const fullText = chunk?.text || citation?.quote || '';
-  const officialUrl = citation?.officialUrl || chunk?.officialAnchorUrl || '#';
+  const officialUrl = chunk?.officialAnchorUrl || citation?.officialUrl || '#';
   const keyTakeaways = chunk?.keyTakeaways || [];
 
   const handleCopy = () => {
@@ -63,10 +64,10 @@ export const CitationDrawer: React.FC<CitationDrawerProps> = ({
                 Geltende Rechtsfassung
               </span>
             </div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-school-textMain dark:text-white">
+            <h2 data-testid="drawer-paragraph-title" className="text-lg sm:text-xl font-extrabold text-school-textMain dark:text-white">
               {currentParagraph}
             </h2>
-            <p className="text-xs sm:text-sm text-school-textMuted dark:text-slate-400">
+            <p data-testid="drawer-section-title" className="text-xs sm:text-sm text-school-textMuted dark:text-slate-400">
               {currentTitle}
             </p>
           </div>

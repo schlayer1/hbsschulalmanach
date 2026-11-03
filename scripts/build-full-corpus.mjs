@@ -209,6 +209,71 @@ const DOC_METADATA = [
     officialUrl: '#hbs-hausordnung',
     description: 'Schulinterne Hausordnung: Handy-Ranzen-Regel, Aufsichtszonen 1–4, Regenpause, Krisenteam & Sportplatz.',
     tags: ['Heimbürgeschule', 'Hausordnung', 'Handyordnung', 'Ranzen-Regel', 'Pausenaufsicht', 'Regenpause', 'Krisenteam', 'Sportplatz']
+  },
+  {
+    fileName: '13-dienstordnung-lehrkraefte.txt',
+    id: 'doc-diensto-l',
+    title: 'Dienstordnung für Lehrkräfte an staatlichen Schulen in Thüringen (DienstO-L)',
+    shortTitle: 'DienstO-L',
+    legalBasis: 'Dienstordnung des TMBJS für Lehrkräfte und Erzieher an staatlichen Schulen',
+    category: 'dienstrecht',
+    currentVersion: 'Geltende Fassung (Konsolidiert)',
+    lastCheckedDate: '2026-11-04',
+    officialUrl: 'https://bildung.thueringen.de/schule/recht/dienstordnung',
+    description: 'Grundlegende Dienstpflichten, Aufsichtsführung vor/nach Unterricht, Elternsprechstunden, Abwesenheitsmeldung und Verschwiegenheit.',
+    tags: ['Dienstordnung', 'DienstO-L', 'Dienstrecht', 'Aufsichtspflicht', 'Krankmeldung', 'Sprechstunde', 'Verschwiegenheit', 'Dienstantritt']
+  },
+  {
+    fileName: '14-kinderschutz-sgbviii.txt',
+    id: 'doc-kinderschutz',
+    title: 'Kinderschutz und Schutzauftrag bei Kindeswohlgefährdung (§ 8a SGB VIII)',
+    shortTitle: 'Kinderschutz § 8a SGB VIII',
+    legalBasis: '§ 8a SGB VIII, KKG i. V. m. Thüringer Kinderschutz-Leitfaden für Schulen',
+    category: 'sicherheit',
+    currentVersion: 'Handreichung TMBJS & Jugendamt Saale-Holzland',
+    lastCheckedDate: '2026-11-04',
+    officialUrl: 'https://bildung.thueringen.de/schule/beratung/kinderschutz',
+    description: 'Verfahren bei gewichtigen Anhaltspunkten für Kindeswohlgefährdung, IseF-Beratung, Meldeweg zum Jugendamt Saale-Holzland-Kreis.',
+    tags: ['Kinderschutz', 'SGB VIII', 'Kindeswohlgefährdung', 'IseF', 'Jugendamt', 'Saale-Holzland', 'Schulsozialarbeit', 'Notfall', 'Gefährdung']
+  },
+  {
+    fileName: '15-nachteilsausgleich-lrs.txt',
+    id: 'doc-nachteilsausgleich-lrs',
+    title: 'Nachteilsausgleich und Notenschutz bei LRS und chronischen Erkrankungen',
+    shortTitle: 'VV Nachteilsausgleich / LRS',
+    legalBasis: 'Verwaltungsvorschrift des TMBJS zu Nachteilsausgleich und Notenschutz',
+    category: 'schulrecht',
+    currentVersion: 'Geltende Fassung',
+    lastCheckedDate: '2026-11-04',
+    officialUrl: 'https://bildung.thueringen.de/schule/foerderung/nachteilsausgleich',
+    description: 'Differenzierung zwischen Nachteilsausgleich (Zeitzugabe, Hilfsmittel - OHNE Zeugnisvermerk) und Notenschutz (mit Zeugnisvermerk).',
+    tags: ['Nachteilsausgleich', 'Notenschutz', 'LRS', 'Legasthenie', 'Förderplan', 'Zeitzugabe', 'Zeugnisvermerk', 'Klassenkonferenz', 'Rechtschreibung']
+  },
+  {
+    fileName: '16-medikamentengabe-schulen.txt',
+    id: 'doc-medikamente-schulen',
+    title: 'Medikamentengabe & Unterstützung chronisch kranker Schüler an Schulen',
+    shortTitle: 'Medikamentengabe TMBJS/UKT',
+    legalBasis: 'Gemeinsame Handreichung von TMBJS und Unfallkasse Thüringen (UKT)',
+    category: 'sicherheit',
+    currentVersion: 'Handreichung UKT / TMBJS',
+    lastCheckedDate: '2026-11-04',
+    officialUrl: 'https://www.ukt.de/praevention/schulen-und-kindertageseinrichtungen/gesundheitsschutz',
+    description: 'Freiwilligkeit regelmäßiger Medikamentengabe für Lehrkräfte, schriftliche Elternvereinbarung, Notfallmedikation (Adrenalin-Pen/Asthma).',
+    tags: ['Medikamentengabe', 'Chronische Erkrankungen', 'Notfallmedikation', 'Allergie-Pen', 'Adrenalin', 'UKT', 'Haftungsschutz', 'Erste Hilfe', 'Notfallplan']
+  },
+  {
+    fileName: '17-korruptionspraevention-geschenke.txt',
+    id: 'doc-geschenke-korruption',
+    title: 'Annahme von Belohnungen, Geschenken & Korruptionsprävention (ThürBG)',
+    shortTitle: 'Geschenke-Richtlinie ThürBG',
+    legalBasis: '§ 42 BeamtStG, Thüringer Beamtengesetz (ThürBG) & VV Korruptionsprävention',
+    category: 'dienstrecht',
+    currentVersion: 'Geltende Fassung',
+    lastCheckedDate: '2026-11-04',
+    officialUrl: 'https://landesrecht.thueringen.de/bsth/document/jlr-BeamtGTH2014pP42',
+    description: 'Striktes Verbot von Einzelgeschenken, Ausnahmen für symbolische Gemeinschaftsgeschenke der Klasse bis max. 25 Euro, Nachhilfeverbot.',
+    tags: ['Geschenke', 'Belohnungen', 'Korruptionsprävention', 'ThürBG', 'BeamtStG', 'Wertgrenze', 'Gemeinschaftsgeschenk', 'Nachhilfe', 'Dienstvergehen']
   }
 ];
 
@@ -266,6 +331,26 @@ for (const meta of DOC_METADATA) {
     // 768-dimensionales semantisches Embedding berechnen
     const embedding = generateSemanticEmbedding(`${paragraph} ${sectionTitle} ${fullBody}`, tags);
 
+    // Exakte Anchor-URLs für landesrecht.thueringen.de generieren
+    let exactAnchorUrl = meta.officialUrl;
+    const paraNumMatch = rawLabel.match(/§\s*(\d+[a-z]?)/i);
+    if (paraNumMatch) {
+      const pNum = paraNumMatch[1];
+      if (meta.id === 'doc-thuerschulg') {
+        exactAnchorUrl = `https://landesrecht.thueringen.de/bsth/document/jlr-SchulGTH2003pP${pNum}`;
+      } else if (meta.id === 'doc-thuerschulo') {
+        exactAnchorUrl = `https://landesrecht.thueringen.de/bsth/document/jlr-SchulOTHpP${pNum}`;
+      } else if (meta.id === 'doc-thuerlehrazvo') {
+        exactAnchorUrl = `https://landesrecht.thueringen.de/bsth/document/jlr-LehrArbZVO2006THpP${pNum}`;
+      } else if (meta.id === 'doc-thuerpersvg') {
+        exactAnchorUrl = `https://landesrecht.thueringen.de/bsth/document/jlr-PersVGTH2019pP${pNum}`;
+      } else if (meta.id === 'doc-laa-thueringen') {
+        exactAnchorUrl = `https://landesrecht.thueringen.de/bsth/document/jlr-LehrAusbStPrVTHpP${pNum}`;
+      } else if (meta.id === 'doc-geschenke-korruption') {
+        exactAnchorUrl = `https://landesrecht.thueringen.de/bsth/document/jlr-BeamtGTH2014pP42`;
+      }
+    }
+
     const chunk = {
       id: `chunk-${meta.id}-${docChunkCount + 1}`,
       docId: meta.id,
@@ -279,7 +364,7 @@ for (const meta of DOC_METADATA) {
         takeaway1,
         takeaway2
       ],
-      officialAnchorUrl: meta.officialUrl,
+      officialAnchorUrl: exactAnchorUrl,
       tags,
       embedding
     };

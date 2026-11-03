@@ -39,6 +39,11 @@ const documentsToCheck = [
   { name: 'Thür. Personalvertretungsgesetz (ThürPersVG)', id: 'doc-thuerpersvg', key: 'ThürPersVG' },
   { name: 'Datenschutz an Schulen (ThürDSG / DSGVO)', id: 'doc-datenschutz', key: 'Datenschutz' },
   { name: 'Hausordnung Heimbürgeschule Kahla', id: 'doc-hbs-intern', key: 'Heimbürgeschule' },
+  { name: 'Dienstordnung Lehrkräfte (DienstO-L)', id: 'doc-diensto-l', key: 'DienstO-L' },
+  { name: 'Kinderschutz (§ 8a SGB VIII & Jugendamt)', id: 'doc-kinderschutz', key: 'Kinderschutz' },
+  { name: 'Nachteilsausgleich & Notenschutz (LRS)', id: 'doc-nachteilsausgleich-lrs', key: 'Nachteilsausgleich' },
+  { name: 'Medikamentengabe & Notfallpläne', id: 'doc-medikamente-schulen', key: 'Medikamentengabe' },
+  { name: 'Geschenke-Richtlinie (ThürBG / BeamtStG)', id: 'doc-geschenke-korruption', key: 'Geschenke-Richtlinie' },
 ];
 
 console.log('📋 Überprüfe integrierte Rechtsdokumente auf Vollständigkeit und Paragraphen:');

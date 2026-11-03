@@ -112,7 +112,14 @@ export const App: React.FC = () => {
 
   // Zitat öffnen (Drawer)
   const handleOpenCitation = (citation: VerifiedCitation) => {
-    const matchedChunk = [...LEGAL_CHUNKS, ...customChunks].find(c => c.id === citation.chunkId);
+    const allAvailableChunks = [...LEGAL_CHUNKS, ...customChunks];
+    let matchedChunk = allAvailableChunks.find(c => c.id === citation.chunkId);
+    if (!matchedChunk && citation.paragraph) {
+      const pLower = citation.paragraph.toLowerCase().trim();
+      matchedChunk = allAvailableChunks.find(c => c.paragraph.toLowerCase() === pLower)
+                  || allAvailableChunks.find(c => pLower.includes(c.paragraph.toLowerCase()))
+                  || allAvailableChunks.find(c => c.paragraph.toLowerCase().includes(pLower));
+    }
     setSelectedCitation(citation);
     setSelectedChunk(matchedChunk || null);
     setShowCitationDrawer(true);

@@ -46,6 +46,11 @@ assert(corpus.includes('26 Pflichtstunden'), 'ThürLehrAzVO (26 Pflichtstunden R
 assert(corpus.includes('Montag und Freitag'), 'Duales Lehramtsstudium (Praxistage Mo & Fr) ist enthalten');
 assert(corpus.includes('ThILLM'), 'Seiteneinsteiger-Vorkurs ist enthalten');
 assert(corpus.includes('HBS Hausordnung'), 'Hausordnung Heimbürgeschule Kahla ist enthalten');
+assert(corpus.includes('DienstO-L'), 'Dienstordnung Lehrkräfte (DienstO-L) ist enthalten');
+assert(corpus.includes('Kinderschutz § 8a SGB VIII'), 'Kinderschutz (§ 8a SGB VIII & Jugendamt) ist enthalten');
+assert(corpus.includes('VV Nachteilsausgleich / LRS'), 'Nachteilsausgleich & Notenschutz (LRS) ist enthalten');
+assert(corpus.includes('Medikamentengabe TMBJS/UKT'), 'Medikamentengabe & Notfallpläne ist enthalten');
+assert(corpus.includes('Geschenke-Richtlinie ThürBG'), 'Geschenke-Richtlinie & Korruptionsprävention ist enthalten');
 
 console.log('');
 console.log(`Ergebnis: ${passedTests} von ${totalTests} Tests erfolgreich absolviert.`);
