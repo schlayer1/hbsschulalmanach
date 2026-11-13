@@ -99,7 +99,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               Aktive Modell-Kaskade (gemini-school-api)
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              Prioritätsreihenfolge: <code>gemini-flash-lite-latest</code> &rarr; <code>gemini-3-flash-preview</code> &rarr; <code>gemini-flash-latest</code>. Veraltete Modelle (1.5, 2.0, 2.5) sind gemäß Schulstandard strikt ausgeschlossen.
+              Prioritätsreihenfolge: <code>gemini-4-hydrogen</code> &rarr; <code>gemini-flash-lite-latest</code> &rarr; <code>gemini-3.5-flash-lite</code> &rarr; <code>gemini-3.8-flash</code> &rarr; <code>gemini-3.6-flash</code>. Veraltete Modelle (1.5, 2.0, 2.5, 3.5/3.7 Flash) sind gemäß Schulstandard strikt ausgeschlossen.
             </p>
           </div>
 

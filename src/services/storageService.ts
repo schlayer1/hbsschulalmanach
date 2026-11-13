@@ -9,7 +9,7 @@ const STORAGE_KEYS = {
 
 const DEFAULT_SETTINGS: AppSettings = {
   apiKey: '',
-  activeModel: 'gemini-flash-lite-latest',
+  activeModel: 'gemini-4-hydrogen',
   temperature: 0.1,
   theme: 'system',
   fontSize: 'normal',

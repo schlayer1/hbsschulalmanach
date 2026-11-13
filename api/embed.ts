@@ -1,5 +1,5 @@
 // Vercel Serverless Function: /api/embed
-// Erzeugt Text-Embeddings via text-embedding-004
+// Erzeugt Text-Embeddings via gemini-embedding-001
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -45,12 +45,12 @@ export default async function handler(req: any, res: any) {
       return res.status(401).json({ error: 'Kein API-Schlüssel konfiguriert.' });
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${activeKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${activeKey}`;
     const apiRes = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'models/text-embedding-004',
+        model: 'models/gemini-embedding-001',
         content: { parts: [{ text }] }
       })
     });

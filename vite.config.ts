@@ -2,14 +2,12 @@ import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const CANDIDATE_FLASH_MODELS = [
+  'gemini-4-hydrogen',
   'gemini-flash-lite-latest',
-  'gemini-3-flash-preview',
-  'gemini-flash-latest',
-  'gemini-3.6-flash',
-  'gemini-3.7-flash',
+  'gemini-3.5-flash-lite',
   'gemini-3.8-flash',
-  'gemini-3.5-flash',
-  'gemini-3.1-flash-lite-preview',
+  'gemini-3.6-flash',
+  'gemini-flash-latest',
 ];
 
 function geminiLocalProxyPlugin(): Plugin {
@@ -167,12 +165,12 @@ function geminiLocalProxyPlugin(): Plugin {
                 return;
               }
 
-              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${activeKey}`;
+              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${activeKey}`;
               const apiRes = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  model: 'models/text-embedding-004',
+                  model: 'models/gemini-embedding-001',
                   content: { parts: [{ text }] }
                 })
               });
