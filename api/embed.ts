@@ -1,9 +1,28 @@
 // Vercel Serverless Function: /api/embed
-// Erzeugt Text-Embeddings via gemini-embedding-001
+// Erzeugt 768-dimensionale Text-Embeddings via gemini-embedding-001
+
+function isOriginAllowed(req: any): boolean {
+  const origin = req.headers?.origin;
+  if (!origin) return true;
+  const host = req.headers?.host;
+  if (!host) return true;
+  try {
+    const parsedOrigin = new URL(origin);
+    if (parsedOrigin.host === host) return true;
+    const allowedOrigin = (process.env.ALLOWED_ORIGIN || '').trim();
+    if (allowedOrigin && origin === allowedOrigin) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers?.origin;
+  res.setHeader('Vary', 'Origin');
+  if (origin && isOriginAllowed(req)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
   res.setHeader(
     'Access-Control-Allow-Headers',
@@ -11,8 +30,15 @@ export default async function handler(req: any, res: any) {
   );
 
   if (req.method === 'OPTIONS') {
+    if (!isOriginAllowed(req)) {
+      return res.status(403).json({ error: 'Origin nicht erlaubt.' });
+    }
     res.status(200).end();
     return;
+  }
+
+  if (!isOriginAllowed(req)) {
+    return res.status(403).json({ error: 'Cross-Origin-Zugriff nicht erlaubt.' });
   }
 
   if (req.method !== 'POST') {
@@ -45,13 +71,21 @@ export default async function handler(req: any, res: any) {
       return res.status(401).json({ error: 'Kein API-Schlüssel konfiguriert.' });
     }
 
+    const requestedDim = typeof body.outputDimensionality === 'number' && body.outputDimensionality > 0
+      ? Math.min(3072, Math.max(128, Math.floor(body.outputDimensionality)))
+      : 768;
+
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${activeKey}`;
     const apiRes = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(25000),
       body: JSON.stringify({
         model: 'models/gemini-embedding-001',
-        content: { parts: [{ text }] }
+        content: { parts: [{ text }] },
+        embedContentConfig: {
+          outputDimensionality: requestedDim
+        }
       })
     });
 
