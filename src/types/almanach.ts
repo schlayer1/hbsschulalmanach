@@ -80,14 +80,25 @@ export interface VerifiedCitation {
   chunkId: string;
 }
 
+export type SchoolTypeScope = 'regelschule' | 'tgs' | 'all';
+
+export interface ClarifyingQuestion {
+  question: string;
+  refinedQuery: string;
+}
+
 export interface AiAnswer {
   query: string;
   quickConclusion: string; // 1-2 Sätze Schnellfazit
   actionSteps: ActionStep[];
   exceptionsAndRules: string[];
   citations: VerifiedCitation[];
+  clarifyingQuestions?: ClarifyingQuestion[];
+  contextualizedSummary?: string;
   directMatches?: SearchResult[];
   usedSemanticEmbeddings?: boolean;
+  embeddingWarning?: string;
+  aiWarning?: string;
   category: DocumentCategory;
   confidenceScore: number;
   usedModel: string;

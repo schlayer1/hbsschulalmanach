@@ -6,9 +6,16 @@ import {
   VerifiedCitation, 
   BookmarkItem, 
   CustomDocument, 
-  AppSettings 
+  AppSettings,
+  SchoolTypeScope
 } from './types/almanach';
-import { searchCorpus, customDocsToChunks, fetchQueryEmbedding } from './services/searchEngine';
+import {
+  searchCorpus,
+  customDocsToChunks,
+  fetchQueryEmbeddingDetailed,
+  expandWithSiblingChunks,
+} from './services/searchEngine';
+import { contextualizeQuery } from './services/queryContextualizer';
 import { generateLegalAnswer } from './services/geminiService';
 import { loadCorpus, getLoadedCorpusSync } from './services/corpusLoader';
 import { 
@@ -42,6 +49,9 @@ export const App: React.FC = () => {
   // Navigation & State
   const [activeTab, setActiveTab] = useState<ActiveTab>('search');
   const [searchMode, setSearchMode] = useState<'ai' | 'docs'>('ai');
+  const [schoolScope, setSchoolScope] = useState<SchoolTypeScope>('regelschule');
+  const [lastCategory, setLastCategory] = useState<string>('all');
+  const [activeQueryText, setActiveQueryText] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [corpusReady, setCorpusReady] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState<AiAnswer | null>(null);
@@ -49,6 +59,8 @@ export const App: React.FC = () => {
     query: string;
     results: SearchResult[];
     usedSemanticEmbeddings: boolean;
+    contextSummary?: string;
+    embeddingWarning?: string;
   } | null>(null);
   const [explorerDocId, setExplorerDocId] = useState<string | null>(null);
   const [explorerCategory, setExplorerCategory] = useState<string>('all');
@@ -81,7 +93,7 @@ export const App: React.FC = () => {
     return customDocsToChunks(customDocs);
   }, [customDocs]);
 
-  // Recherche ausführen (Echte gemini-embedding-001 Vektor-Suche + optionale KI-Synthese)
+  // Recherche ausführen (2-stufige Kontextualisierung + Embedding + Geschwister-Chunks + KI-Synthese)
   const handlePerformSearch = async (searchQuery: string, category: string, modeOverride?: 'ai' | 'docs') => {
     if (!searchQuery.trim() || isLoading) return;
 
@@ -90,6 +102,8 @@ export const App: React.FC = () => {
     setCurrentAnswer(null);
     setLiveMatches(null);
     setActiveTab('search');
+    setLastCategory(category);
+    setActiveQueryText(searchQuery);
     addQueryHistory(searchQuery);
     setRecentQueries(getQueryHistory());
 
@@ -97,24 +111,32 @@ export const App: React.FC = () => {
       const corpus = await loadCorpus();
       setCorpusReady(true);
 
-      // 1. Echten 768-dim Query-Vektor via /api/embed (gemini-embedding-001) anfordern
-      const queryEmbedding = await fetchQueryEmbedding(searchQuery, settings.apiKey);
+      // 1. Zweistufige Kontextualisierung (Umgangssprache -> Schulrechtsbegriffe + Schulart)
+      const ctx = await contextualizeQuery(searchQuery, schoolScope, settings.apiKey);
+
+      // 2. Echten 768-dim Query-Vektor auf Basis der kontextualisierten Anfrage anfordern
+      const embedRes = await fetchQueryEmbeddingDetailed(ctx.embeddingQuery, settings.apiKey);
+      const queryEmbedding = embedRes.embedding;
       const usedSemantic = Boolean(queryEmbedding && corpus.vectors);
 
-      // 2. Semantische Vektor- + Paragraphen- + Keyword-Suche über alle Dokumente
+      // 3. Semantische Vektor- + Paragraphen- + Schulart-/Primärnorm-Suche
       const searchResults = searchCorpus(searchQuery, {
         categoryFilter: category,
         customChunks,
         queryEmbedding,
         corpus,
         limit: 10,
+        expandedTerms: ctx.expandedTerms,
+        schoolScope: ctx.effectiveSchoolScope,
       });
 
-      // Direkte Fundstellen sofort anzeigen (auch bevor die KI-Synthese fertig ist)
+      // Direkte Fundstellen sofort anzeigen (inkl. Suchkontext & evtl. Quota-Hinweis)
       setLiveMatches({
         query: searchQuery,
         results: searchResults,
         usedSemanticEmbeddings: usedSemantic,
+        contextSummary: ctx.contextSummary,
+        embeddingWarning: embedRes.errorReason,
       });
 
       if (effectiveMode === 'docs') {
@@ -122,7 +144,11 @@ export const App: React.FC = () => {
         return;
       }
 
-      const retrievedChunks = searchResults.slice(0, 6).map((r) => r.chunk);
+      const retrievedChunks = expandWithSiblingChunks(
+        searchResults.slice(0, 5).map((r) => r.chunk),
+        corpus,
+        9
+      );
       const finalChunks =
         retrievedChunks.length > 0
           ? retrievedChunks
@@ -130,12 +156,16 @@ export const App: React.FC = () => {
           ? corpus.chunks.filter((c) => c.category === category).slice(0, 4)
           : corpus.chunks.slice(0, 4);
 
-      // 3. KI-Synthese durch Gemini-Schul-Proxy auf Basis der echten Fundstellen
+      // 4. KI-Synthese durch Gemini-Schul-Proxy auf Basis vollständiger Paragraphen
       const answer = await generateLegalAnswer({
         query: searchQuery,
         relevantChunks: finalChunks,
         userApiKey: settings.apiKey,
         customModel: settings.activeModel,
+        schoolScope: ctx.effectiveSchoolScope,
+        contextualizedSummary: ctx.contextSummary,
+        clarifyingQuestions: ctx.clarifyingQuestions,
+        embeddingWarning: embedRes.errorReason,
       });
 
       setCurrentAnswer({
@@ -247,8 +277,11 @@ export const App: React.FC = () => {
                 onSearch={handlePerformSearch}
                 isLoading={isLoading}
                 recentQueries={recentQueries}
+                initialQuery={activeQueryText}
                 searchMode={searchMode}
                 onChangeSearchMode={setSearchMode}
+                schoolScope={schoolScope}
+                onChangeSchoolScope={setSchoolScope}
               />
             </div>
 
@@ -296,6 +329,8 @@ export const App: React.FC = () => {
                   query={liveMatches.query}
                   results={liveMatches.results}
                   usedSemanticEmbeddings={liveMatches.usedSemanticEmbeddings}
+                  contextSummary={liveMatches.contextSummary}
+                  embeddingWarning={liveMatches.embeddingWarning}
                   onOpenInDocument={handleSelectChunkFromExplorer}
                 />
               </div>
@@ -311,6 +346,7 @@ export const App: React.FC = () => {
                   onSaveBookmark={handleSaveAnswerBookmark}
                   isBookmarked={bookmarks.some(b => b.title === currentAnswer.query)}
                   onPrintReport={handleOpenPrint}
+                  onSelectClarifyingQuery={(refined) => handlePerformSearch(refined, lastCategory)}
                   onResetSearch={() => {
                     setCurrentAnswer(null);
                     setLiveMatches(null);

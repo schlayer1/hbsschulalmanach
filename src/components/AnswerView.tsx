@@ -15,7 +15,8 @@ import {
   ExternalLink, 
   Sparkles, 
   RotateCcw,
-  BookOpen
+  BookOpen,
+  HelpCircle
 } from 'lucide-react';
 import { CATEGORIES } from '../data/categories';
 import { DirectMatchesList } from './DirectMatchesList';
@@ -28,6 +29,7 @@ interface AnswerViewProps {
   isBookmarked: boolean;
   onPrintReport: (answer: AiAnswer) => void;
   onResetSearch: () => void;
+  onSelectClarifyingQuery?: (refinedQuery: string) => void;
 }
 
 export const AnswerView: React.FC<AnswerViewProps> = ({
@@ -38,12 +40,31 @@ export const AnswerView: React.FC<AnswerViewProps> = ({
   isBookmarked,
   onPrintReport,
   onResetSearch,
+  onSelectClarifyingQuery,
 }) => {
   const cat = CATEGORIES[answer.category] || CATEGORIES.schulrecht;
+  const hasAnyWarning = Boolean(answer.aiWarning || answer.embeddingWarning);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-200">
       
+      {/* Transparenz-Warnung bei Offline-/Quota-Fallback */}
+      {hasAnyWarning && (
+        <div
+          role="status"
+          className="bg-amber-50 dark:bg-amber-950/50 border-2 border-amber-300 dark:border-amber-700 rounded-2xl p-4 flex items-start gap-3 shadow-soft"
+        >
+          <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="text-xs sm:text-sm text-amber-950 dark:text-amber-100 space-y-1">
+            <p className="font-extrabold">
+              Eingeschränkter Such- oder KI-Modus aktiv (Fallback)
+            </p>
+            {answer.aiWarning && <p>{answer.aiWarning}</p>}
+            {answer.embeddingWarning && <p>{answer.embeddingWarning}</p>}
+          </div>
+        </div>
+      )}
+
       {/* Top Header Card: Original Question & Meta */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-6 border border-school-border/50 shadow-soft">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-700/60 pb-4 mb-4">
@@ -102,6 +123,12 @@ export const AnswerView: React.FC<AnswerViewProps> = ({
           <h2 className="text-lg sm:text-xl font-bold text-school-textMain dark:text-white mt-1">
             „{answer.query}“
           </h2>
+          {answer.contextualizedSummary && (
+            <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-sky-800 dark:text-sky-200 bg-sky-50 dark:bg-sky-950/40 px-2.5 py-1 rounded-lg border border-sky-200/70 dark:border-sky-800/70">
+              <Sparkles className="w-3.5 h-3.5 text-school-primary shrink-0" aria-hidden="true" />
+              <span>Erkannter Suchkontext: {answer.contextualizedSummary}</span>
+            </p>
+          )}
         </div>
       </div>
 
@@ -127,6 +154,28 @@ export const AnswerView: React.FC<AnswerViewProps> = ({
         </div>
       </div>
 
+      {/* Optionale Rückfragen / Rückversicherungs-Chips zur Konkretisierung */}
+      {answer.clarifyingQuestions && answer.clarifyingQuestions.length > 0 && onSelectClarifyingQuery && (
+        <div className="bg-sky-50/70 dark:bg-sky-950/30 rounded-2xl p-4 border border-sky-200/80 dark:border-sky-800/70 space-y-2.5">
+          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-sky-900 dark:text-sky-200">
+            <HelpCircle className="w-4 h-4 text-school-primary shrink-0" aria-hidden="true" />
+            <span>Fall weiter eingrenzen (Rückfragen zur genaueren Subsumtion):</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {answer.clarifyingQuestions.map((cq, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => onSelectClarifyingQuery(cq.refinedQuery)}
+                className="text-left px-3 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 text-school-textMain dark:text-slate-100 border border-sky-300/70 dark:border-sky-700 hover:border-school-primary hover:bg-sky-100/60 dark:hover:bg-slate-700 transition-all shadow-xs min-h-[40px]"
+              >
+                {cq.question}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* STUFE 2: 📋 HANDLUNGSSCHRITTE & ZUSTÄNDIGKEITEN */}
       {answer.actionSteps && answer.actionSteps.length > 0 && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-6 border border-school-border/50 shadow-soft space-y-4">
@@ -149,6 +198,7 @@ export const AnswerView: React.FC<AnswerViewProps> = ({
               const roleColors: Record<string, string> = {
                 Lehrkraft: 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border-blue-300',
                 Klassenleitung: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border-amber-300',
+                Klassenkonferenz: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 border-indigo-300',
                 Schulleitung: 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border-rose-300',
                 Fachlehrer: 'bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 border-teal-300',
                 Mentor: 'bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 border-purple-300',
@@ -271,6 +321,7 @@ export const AnswerView: React.FC<AnswerViewProps> = ({
           query={answer.query}
           results={answer.directMatches}
           usedSemanticEmbeddings={Boolean(answer.usedSemanticEmbeddings)}
+          contextSummary={answer.contextualizedSummary}
           onOpenInDocument={onOpenInDocument}
         />
       )}

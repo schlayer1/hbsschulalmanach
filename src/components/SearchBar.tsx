@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Mic, MicOff, X, ArrowRight, Sparkles, History, Filter } from 'lucide-react';
+import { Search, Mic, MicOff, X, ArrowRight, Sparkles, History, Filter, School } from 'lucide-react';
 import { CATEGORIES } from '../data/categories';
+import { SchoolTypeScope } from '../types/almanach';
 
 interface SearchBarProps {
   onSearch: (query: string, category: string, mode?: 'ai' | 'docs') => void;
@@ -9,6 +10,8 @@ interface SearchBarProps {
   initialQuery?: string;
   searchMode?: 'ai' | 'docs';
   onChangeSearchMode?: (mode: 'ai' | 'docs') => void;
+  schoolScope?: SchoolTypeScope;
+  onChangeSchoolScope?: (scope: SchoolTypeScope) => void;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -18,6 +21,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   initialQuery = '',
   searchMode = 'ai',
   onChangeSearchMode,
+  schoolScope = 'regelschule',
+  onChangeSchoolScope,
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -207,35 +212,81 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </form>
 
-      {/* Modus-Umschalter + Kategorie-Filter */}
-      {onChangeSearchMode && (
+      {/* Modus-Umschalter + Schulart-Kontext (Option 1 Standard + Option 3 manuell) */}
+      {(onChangeSearchMode || onChangeSchoolScope) && (
         <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200/80 dark:border-slate-700">
-            <button
-              type="button"
-              onClick={() => onChangeSearchMode('ai')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
-                searchMode === 'ai'
-                  ? 'bg-white dark:bg-slate-700 text-school-primary dark:text-sky-300 shadow-xs'
-                  : 'text-school-textMuted dark:text-slate-400 hover:text-school-textMain'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>KI-Antwort + Fundstellen</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onChangeSearchMode('docs')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
-                searchMode === 'docs'
-                  ? 'bg-white dark:bg-slate-700 text-school-primary dark:text-sky-300 shadow-xs'
-                  : 'text-school-textMuted dark:text-slate-400 hover:text-school-textMain'
-              }`}
-            >
-              <Search className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Nur Embeddingsuche (Sofort)</span>
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {onChangeSearchMode && (
+              <div
+                role="group"
+                aria-label="Suchmodus wählen"
+                className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200/80 dark:border-slate-700"
+              >
+                <button
+                  type="button"
+                  aria-pressed={searchMode === 'ai'}
+                  onClick={() => onChangeSearchMode('ai')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
+                    searchMode === 'ai'
+                      ? 'bg-white dark:bg-slate-700 text-school-primary dark:text-sky-300 shadow-xs'
+                      : 'text-school-textMuted dark:text-slate-400 hover:text-school-textMain'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>KI-Antwort + Fundstellen</span>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={searchMode === 'docs'}
+                  onClick={() => onChangeSearchMode('docs')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
+                    searchMode === 'docs'
+                      ? 'bg-white dark:bg-slate-700 text-school-primary dark:text-sky-300 shadow-xs'
+                      : 'text-school-textMuted dark:text-slate-400 hover:text-school-textMain'
+                  }`}
+                >
+                  <Search className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Nur Embeddingsuche (Sofort)</span>
+                </button>
+              </div>
+            )}
+
+            {onChangeSchoolScope && (
+              <div
+                role="group"
+                aria-label="Schulart-Kontext für Suche und Antwort"
+                className="inline-flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200/80 dark:border-slate-700"
+              >
+                <span className="px-2 text-[11px] font-bold text-school-textMuted dark:text-slate-400 inline-flex items-center gap-1">
+                  <School className="w-3.5 h-3.5 text-school-primary" aria-hidden="true" />
+                  <span className="hidden sm:inline">Kontext:</span>
+                </span>
+                {(
+                  [
+                    { id: 'regelschule', label: 'Regelschule (HBS)', title: 'Standard: Priorisiert Thüringer Regelschulrecht' },
+                    { id: 'tgs', label: '+ TGS', title: 'Regelschule & Thüringer Gemeinschaftsschule berücksichtigen' },
+                    { id: 'all', label: 'Alle Schularten', title: 'Auch Grundschule, Gymnasium / Oberstufe und Förderschule einbeziehen' },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    aria-pressed={schoolScope === opt.id}
+                    title={opt.title}
+                    onClick={() => onChangeSchoolScope(opt.id)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
+                      schoolScope === opt.id
+                        ? 'bg-white dark:bg-slate-700 text-school-primary dark:text-sky-300 shadow-xs'
+                        : 'text-school-textMuted dark:text-slate-400 hover:text-school-textMain'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
           <span className="text-[11px] text-school-textMuted dark:text-slate-400">
             Semantische Suche über alle 61 schulrechtlichen &amp; HBS-Dokumente
           </span>

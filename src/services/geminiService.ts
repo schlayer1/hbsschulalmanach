@@ -1,4 +1,11 @@
-import { LegalChunk, AiAnswer, ActionStep, VerifiedCitation } from '../types/almanach';
+import {
+  LegalChunk,
+  AiAnswer,
+  ActionStep,
+  VerifiedCitation,
+  SchoolTypeScope,
+  ClarifyingQuestion,
+} from '../types/almanach';
 import { getLoadedCorpusSync } from './corpusLoader';
 
 interface GenerateAnswerParams {
@@ -6,10 +13,23 @@ interface GenerateAnswerParams {
   relevantChunks: LegalChunk[];
   userApiKey?: string;
   customModel?: string;
+  schoolScope?: SchoolTypeScope;
+  contextualizedSummary?: string;
+  clarifyingQuestions?: ClarifyingQuestion[];
+  embeddingWarning?: string;
 }
 
 export async function generateLegalAnswer(params: GenerateAnswerParams): Promise<AiAnswer> {
-  const { query, relevantChunks, userApiKey, customModel } = params;
+  const {
+    query,
+    relevantChunks,
+    userApiKey,
+    customModel,
+    schoolScope = 'regelschule',
+    contextualizedSummary,
+    clarifyingQuestions = [],
+    embeddingWarning,
+  } = params;
 
   // Fallback, wenn keine Chunks gefunden wurden
   if (!relevantChunks || relevantChunks.length === 0) {
@@ -31,6 +51,10 @@ export async function generateLegalAnswer(params: GenerateAnswerParams): Promise
       usedModel: 'lokaler-index',
       timestamp: new Date().toISOString(),
       isOfflineFallback: true,
+      contextualizedSummary,
+      clarifyingQuestions,
+      embeddingWarning,
+      aiWarning: 'Keine passenden Textstellen im Korpus gefunden.',
     };
   }
 
@@ -46,13 +70,20 @@ ${c.text}
 AMTLICHE_URL: ${c.officialAnchorUrl}`)
     .join('\n\n---\n\n');
 
+  const schoolScopeInstruction =
+    schoolScope === 'tgs'
+      ? 'Behalte die Perspektive der Staatlichen Regelschule und Thüringer Gemeinschaftsschule (Heimbürgeschule Kahla, Sekundarstufe I / TGS) bei.'
+      : schoolScope === 'all'
+        ? 'Berücksichtige je nach Fragestellung alle passenden Thüringer Schularten und weise klar aus, für welche Schulart der jeweilige Paragraph gilt.'
+        : 'Behalte strikt die Thüringer Regelschul-Perspektive bei (Heimbürgeschule Kahla: Klassenstufen 5–10, Kursebenen I und II ab Kl. 7, z. B. § 51 ThürSchulO für Versetzung an der Regelschule – nicht Grundschule oder gymnasiale Oberstufe, sofern nicht explizit erfragt).';
+
   const systemPrompt = `Du bist der offizielle juristische KI-Rechtsassistent des Schulalmanachs der Staatlichen Regelschule Heimbürgeschule Kahla (Thüringen).
 Deine Aufgabe ist es, Kolleginnen und Kollegen im Schulalltag verlässliche, rechtssichere und didaktisch praxistaugliche Auskünfte zu erteilen.
 
 WICHTIGE JURISTISCHE GRUNDSÄTZE:
 1. Erfinde NIEMALS Paragraphen, Gesetze, Fundstellen oder Regelungen! Nutze ausschließlich das Thüringer Schulrecht (ThürSchulG, ThürSchulO, VVOrg, VV Wandertage und Klassenfahrten, RISU / UKT, ThürLehrAzVO, ThürAZStPLVO, ThürPersVG, ThürDSG, DienstO-L, Dienstanweisung Gewalt & Kinderschutz, Praxishilfe Nachteilsausgleich, Medikamentengabe, Korruptionsprävention/Geschenke) sowie die bereitgestellten Quellen.
-2. Wenn eine Frage nicht eindeutig durch die Quellen beantwortet wird, sage das klar und verweise auf die Schulleitung.
-3. Behalte immer die Thüringer Regelschul-Perspektive bei (z. B. 26 Pflichtstunden, Anspruchsebenen I und II ab Kl. 7).
+2. Wenn eine Frage nicht eindeutig durch die Quellen beantwortet wird (z. B. weil Fächer, Anspruchsebenen oder Vorwiederholungen in der Anfrage fehlen), benenne die konkreten Bedingungen aus dem Gesetz und verweise bei Ermessensentscheidungen auf die Klassenkonferenz bzw. Schulleitung.
+3. ${schoolScopeInstruction}
 
 STRIKTES VERIFIKATIONS-GEBOT FÜR CITATIONS (FUNDSTELLEN):
 - Verwende im Feld "sourceChunkId" AUSSCHLIESSLICH die exakte "QUELLE_ID" aus den oben bereitgestellten Quellen (z. B. "chunk-doc-vv-schulfahrten-7" oder "chunk-doc-thuerschulg-20")!
@@ -62,17 +93,17 @@ STRIKTES VERIFIKATIONS-GEBOT FÜR CITATIONS (FUNDSTELLEN):
 
 Du musst die Antwort STRENG ALS VALIDES JSON im folgenden Schema zurückgeben:
 {
-  "quickConclusion": "1 bis 2 prägnante Sätze als direktes Schnell-Fazit für sofortige Handlungsfähigkeit im Schulalltag.",
+  "quickConclusion": "1 bis 3 prägnante Sätze als direktes Schnell-Fazit für sofortige Handlungsfähigkeit im Schulalltag.",
   "actionSteps": [
     {
       "stepNumber": 1,
       "title": "Prägnanter Schritt-Titel",
-      "description": "Genaue Beschreibung, was die Lehrkraft oder Schulleitung konkret tun muss.",
-      "role": "Lehrkraft" // oder "Klassenleitung", "Schulleitung", "Fachlehrer", "Mentor"
+      "description": "Genaue Beschreibung, was die Lehrkraft, Klassenkonferenz oder Schulleitung konkret tun muss.",
+      "role": "Lehrkraft" // oder "Klassenleitung", "Klassenkonferenz", "Schulleitung", "Fachlehrer", "Mentor"
     }
   ],
   "exceptionsAndRules": [
-    "Wichtige Ausnahmen, Fristen oder Formvorschriften (z. B. 3-Tage-Frist, Schriftform, Anhörung)."
+    "Wichtige Ausnahmen, Ausgleichsbedingungen, Fristen oder Formvorschriften aus den Quellen."
   ],
   "citations": [
     {
@@ -80,11 +111,17 @@ Du musst die Antwort STRENG ALS VALIDES JSON im folgenden Schema zurückgeben:
       "quote": "Wörtliches Zitat direkt aus dem obigen Text",
       "context": "Kurze Erläuterung der Bedeutung für den Praxisfall"
     }
+  ],
+  "clarifyingQuestions": [
+    {
+      "question": "Optionale Rückfrage, falls Details für eine exakte Subsumtion fehlen (z. B. Welche Fächer sind betroffen / Ausgleich möglich?)",
+      "refinedQuery": "Präzisierte Suchanfrage inkl. ursprünglichem Kontext"
+    }
   ]
 }`;
 
   const userPrompt = `Fragestellung einer Lehrkraft der Heimbürgeschule:
-"${query}"
+"${query}"${contextualizedSummary ? `\nErkannter Kontext: ${contextualizedSummary}` : ''}
 
 Hier sind die offiziellen Auszüge aus den Thüringer Schulrechts- und Sicherheitsdokumenten:
 ${contextText}
@@ -103,11 +140,23 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
         apiKey: userApiKey || 'serverless-proxy',
         model: customModel,
         temperature: 0.1,
+        jsonMode: true,
+        maxOutputTokens: 8192,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`API-Fehler HTTP ${response.status}`);
+      let detail = '';
+      try {
+        const errData = await response.json();
+        detail = errData?.error ? ` (${String(errData.error).slice(0, 120)})` : '';
+      } catch {
+        // ignore JSON parse error
+      }
+      if (response.status === 429) {
+        throw new Error(`HTTP 429 Quota/Tageslimit erreicht${detail}`);
+      }
+      throw new Error(`HTTP ${response.status}${detail}`);
     }
 
     const data = await response.json();
@@ -198,6 +247,14 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
       }
     }
 
+    const llmClarifying: ClarifyingQuestion[] = Array.isArray(parsed.clarifyingQuestions)
+      ? parsed.clarifyingQuestions
+          .filter((q: any) => q && typeof q.question === 'string' && typeof q.refinedQuery === 'string')
+          .slice(0, 3)
+      : [];
+
+    const mergedClarifying = llmClarifying.length > 0 ? llmClarifying : clarifyingQuestions;
+
     return {
       query,
       quickConclusion: parsed.quickConclusion || 'Rechtliche Auswertung abgeschlossen.',
@@ -206,13 +263,17 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
       citations: enhancedCitations,
       category: relevantChunks[0].category,
       confidenceScore: 0.95,
-      usedModel: data.model || 'Gemini 3 Flash',
+      usedModel: data.model || 'gemini-4-hydrogen',
       timestamp: new Date().toISOString(),
       isOfflineFallback: false,
+      contextualizedSummary,
+      clarifyingQuestions: mergedClarifying,
+      embeddingWarning,
     };
   } catch (err: any) {
-    // Robuster Offline- / Client-Fallback
-    console.warn('KI-Proxy nicht erreichbar oder Antwort ungültig, erstelle Offline-Auswertung:', err.message);
+    // Robuster Offline- / Client-Fallback mit transparentem Hinweis
+    const errMsg = err?.message || 'Unbekannter Fehler';
+    console.warn('KI-Proxy nicht erreichbar oder Antwort ungültig, erstelle Offline-Auswertung:', errMsg);
 
     const fallbackCitations: VerifiedCitation[] = relevantChunks.slice(0, 4).map((c, idx) => ({
       id: `cit-offline-${Date.now()}-${idx}`,
@@ -237,18 +298,22 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
 
     return {
       query,
-      quickConclusion: `Gemäß ${primaryChunk.paragraph}: ${primaryChunk.summary}`,
+      quickConclusion: `Offline-/Fallback-Treffer ohne KI-Synthese – wahrscheinlichste Rechtsgrundlage laut Korpus ist ${primaryChunk.paragraph} (${primaryChunk.sectionTitle}): ${primaryChunk.summary}`,
       actionSteps: fallbackSteps,
       exceptionsAndRules: [
-        'Auswertung basiert auf dem vorindexierten Thüringer Rechtskorpus der Heimbürgeschule.',
-        'Für Details bitte direkt den verlinkten Paragraphen öffnen.'
+        'Hinweis: Die Antwort wurde ohne Live-KI-Auswertung aus den besten Treffern des lokalen Rechtskorpus zusammengestellt.',
+        'Bitte prüfen Sie die verlinkten Originalparagraphen unten direkt im Dokument.',
       ],
       citations: fallbackCitations,
       category: primaryChunk.category,
-      confidenceScore: 0.85,
-      usedModel: 'Offline-Index (Heimbürgeschule)',
+      confidenceScore: 0.7,
+      usedModel: 'Offline-Index (Fallback)',
       timestamp: new Date().toISOString(),
       isOfflineFallback: true,
+      contextualizedSummary,
+      clarifyingQuestions,
+      embeddingWarning,
+      aiWarning: `KI-Synthese fehlgeschlagen (${errMsg}). Angezeigt wird eine automatische Korpus-Zuordnung.`,
     };
   }
 }

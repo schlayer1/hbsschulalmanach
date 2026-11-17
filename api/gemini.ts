@@ -66,15 +66,26 @@ export default async function handler(req: any, res: any) {
     }
     body = body || {};
 
-    const { systemPrompt, userPrompt, model, temperature = 0.2 } = body;
+    const { systemPrompt, userPrompt, model, temperature = 0.2, jsonMode = false, maxOutputTokens } = body;
 
     const clientKey = (typeof body.apiKey === 'string' && body.apiKey.trim() !== 'serverless-proxy')
       ? body.apiKey.trim()
       : '';
-    const serverKey = (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '').trim();
-    const activeKey = clientKey || serverKey;
+    const candidateKeys: string[] = [];
+    const pushKey = (raw?: string) => {
+      if (!raw) return;
+      for (const k of raw.split(',')) {
+        const clean = k.trim();
+        if (clean && !candidateKeys.includes(clean)) candidateKeys.push(clean);
+      }
+    };
+    if (clientKey) pushKey(clientKey);
+    pushKey(process.env.GEMINI_API_KEY);
+    pushKey(process.env.GEMINI_BACKUP_API_KEY);
+    pushKey(process.env.GEMINI_API_KEYS);
+    pushKey(process.env.VITE_GEMINI_API_KEY);
 
-    if (!activeKey) {
+    if (candidateKeys.length === 0) {
       return res.status(401).json({
         error: 'Kein Gemini API-Schlüssel konfiguriert. Bitte hinterlege GEMINI_API_KEY in Vercel als Secret oder trage deinen persönlichen Schlüssel im Dialog ein.'
       });
@@ -88,53 +99,76 @@ export default async function handler(req: any, res: any) {
       ? [model, ...CANDIDATE_FLASH_MODELS.filter(m => m !== model)]
       : CANDIDATE_FLASH_MODELS;
 
-    let lastError = null;
+    const resolvedMaxTokens = Math.min(16384, Math.max(1024, Number(maxOutputTokens) || 8192));
+
+    let lastError: string | null = null;
+    let lastStatus = 502;
     let responseText = '';
     let usedModel = '';
 
-    for (const candidate of requestedModels) {
-      try {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${candidate}:generateContent?key=${activeKey}`;
-        const payload: any = {
-          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-          generationConfig: {
+    outer: for (const candidate of requestedModels) {
+      for (const activeKey of candidateKeys) {
+        try {
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${candidate}:generateContent?key=${encodeURIComponent(activeKey)}`;
+          const generationConfig: any = {
             temperature,
             topP: 0.95,
-            maxOutputTokens: 2048,
-          }
-        };
-
-        if (systemPrompt && typeof systemPrompt === 'string') {
-          payload.systemInstruction = {
-            parts: [{ text: systemPrompt }]
+            maxOutputTokens: resolvedMaxTokens,
           };
+          if (jsonMode) {
+            generationConfig.responseMimeType = 'application/json';
+          }
+          const payload: any = {
+            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+            generationConfig
+          };
+
+          if (systemPrompt && typeof systemPrompt === 'string') {
+            payload.systemInstruction = {
+              parts: [{ text: systemPrompt }]
+            };
+          }
+
+          const apiRes = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(12000),
+            body: JSON.stringify(payload)
+          });
+
+          if (!apiRes.ok) {
+            const errData = await apiRes.json().catch(() => ({}));
+            lastError = errData?.error?.message || `HTTP ${apiRes.status}`;
+            lastStatus = apiRes.status;
+            // Bei 429/401/403 direkt nächsten Key versuchen, bei 404 Modell wechseln
+            if (apiRes.status === 429 || apiRes.status === 401 || apiRes.status === 403) {
+              continue;
+            }
+            break;
+          }
+
+          const data = await apiRes.json();
+          const parts = data.candidates?.[0]?.content?.parts || [];
+          const nonThoughtText = parts
+            .filter((p: any) => !p.thought && typeof p.text === 'string')
+            .map((p: any) => p.text)
+            .join('');
+          responseText = nonThoughtText || parts?.[0]?.text || '';
+          if (!responseText) {
+            lastError = 'Leere Modellantwort';
+            continue;
+          }
+          usedModel = candidate;
+          break outer;
+        } catch (err: any) {
+          lastError = err.message || String(err);
         }
-
-        const apiRes = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: AbortSignal.timeout(45000),
-          body: JSON.stringify(payload)
-        });
-
-        if (!apiRes.ok) {
-          const errData = await apiRes.json().catch(() => ({}));
-          lastError = errData?.error?.message || `HTTP ${apiRes.status}`;
-          continue;
-        }
-
-        const data = await apiRes.json();
-        responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        usedModel = candidate;
-        break;
-      } catch (err: any) {
-        lastError = err.message || String(err);
       }
     }
 
     if (!responseText && lastError) {
-      return res.status(502).json({
-        error: `Alle Modellversuche fehlgeschlagen. Letzter Fehler: ${lastError}`
+      return res.status(lastStatus === 429 ? 429 : 502).json({
+        error: `Alle Modell-/Key-Versuche fehlgeschlagen. Letzter Fehler: ${lastError}`
       });
     }
 

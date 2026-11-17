@@ -66,8 +66,9 @@ function geminiLocalProxyPlugin(localEnv: Record<string, string>): Plugin {
                 return;
               }
 
-              const { systemPrompt, userPrompt, model, temperature = 0.2 } = body;
+              const { systemPrompt, userPrompt, model, temperature = 0.2, jsonMode = false, maxOutputTokens } = body;
               const requestedModels = model ? [model, ...CANDIDATE_FLASH_MODELS.filter(m => m !== model)] : CANDIDATE_FLASH_MODELS;
+              const resolvedMaxTokens = Math.min(16384, Math.max(1024, Number(maxOutputTokens) || 8192));
 
               let lastError = null;
               let responseText = '';
@@ -75,14 +76,18 @@ function geminiLocalProxyPlugin(localEnv: Record<string, string>): Plugin {
 
               for (const candidate of requestedModels) {
                 try {
-                  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${candidate}:generateContent?key=${activeKey}`;
-                  const payload = {
+                  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${candidate}:generateContent?key=${encodeURIComponent(activeKey)}`;
+                  const generationConfig: any = {
+                    temperature,
+                    topP: 0.95,
+                    maxOutputTokens: resolvedMaxTokens,
+                  };
+                  if (jsonMode) {
+                    generationConfig.responseMimeType = 'application/json';
+                  }
+                  const payload: any = {
                     contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-                    generationConfig: {
-                      temperature,
-                      topP: 0.95,
-                      maxOutputTokens: 2048,
-                    }
+                    generationConfig
                   };
 
                   if (systemPrompt) {
@@ -94,6 +99,7 @@ function geminiLocalProxyPlugin(localEnv: Record<string, string>): Plugin {
                   const apiRes = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(12000),
                     body: JSON.stringify(payload)
                   });
 
@@ -104,7 +110,16 @@ function geminiLocalProxyPlugin(localEnv: Record<string, string>): Plugin {
                   }
 
                   const data = await apiRes.json();
-                  responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                  const parts = data.candidates?.[0]?.content?.parts || [];
+                  const nonThought = parts
+                    .filter((p: any) => !p.thought && typeof p.text === 'string')
+                    .map((p: any) => p.text)
+                    .join('');
+                  responseText = nonThought || parts?.[0]?.text || '';
+                  if (!responseText) {
+                    lastError = 'Leere Modellantwort';
+                    continue;
+                  }
                   usedModel = candidate;
                   break;
                 } catch (err: any) {

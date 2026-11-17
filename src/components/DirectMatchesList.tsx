@@ -1,6 +1,6 @@
 import React from 'react';
 import { LegalChunk, SearchResult } from '../types/almanach';
-import { BookOpen, ExternalLink, Sparkles, Search, ShieldCheck, Building2 } from 'lucide-react';
+import { BookOpen, ExternalLink, Sparkles, Search, ShieldCheck, Building2, AlertTriangle } from 'lucide-react';
 import { CATEGORIES } from '../data/categories';
 
 interface DirectMatchesListProps {
@@ -9,6 +9,8 @@ interface DirectMatchesListProps {
   usedSemanticEmbeddings: boolean;
   onOpenInDocument: (chunk: LegalChunk) => void;
   compact?: boolean;
+  contextSummary?: string;
+  embeddingWarning?: string;
 }
 
 export const DirectMatchesList: React.FC<DirectMatchesListProps> = ({
@@ -17,6 +19,8 @@ export const DirectMatchesList: React.FC<DirectMatchesListProps> = ({
   usedSemanticEmbeddings,
   onOpenInDocument,
   compact = false,
+  contextSummary,
+  embeddingWarning,
 }) => {
   if (!results || results.length === 0) {
     return (
@@ -73,6 +77,25 @@ export const DirectMatchesList: React.FC<DirectMatchesListProps> = ({
           </span>
         </div>
       </div>
+
+      {contextSummary && (
+        <div className="flex items-center gap-2 text-xs text-sky-800 dark:text-sky-200 bg-sky-50/80 dark:bg-sky-950/40 px-3 py-2 rounded-xl border border-sky-200/70 dark:border-sky-800/70">
+          <Sparkles className="w-3.5 h-3.5 text-school-primary shrink-0" aria-hidden="true" />
+          <span>
+            <strong className="font-bold">Suchkontext:</strong> {contextSummary}
+          </span>
+        </div>
+      )}
+
+      {embeddingWarning && (
+        <div
+          role="status"
+          className="flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800"
+        >
+          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{embeddingWarning}</span>
+        </div>
+      )}
 
       <div className={`grid grid-cols-1 ${compact ? '' : 'lg:grid-cols-2'} gap-3.5`}>
         {results.map((result, idx) => {

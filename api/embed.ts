@@ -64,10 +64,21 @@ export default async function handler(req: any, res: any) {
     const clientKey = (typeof body.apiKey === 'string' && body.apiKey.trim() !== 'serverless-proxy')
       ? body.apiKey.trim()
       : '';
-    const serverKey = (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '').trim();
-    const activeKey = clientKey || serverKey;
+    const candidateKeys: string[] = [];
+    const pushKey = (raw?: string) => {
+      if (!raw) return;
+      for (const k of raw.split(',')) {
+        const clean = k.trim();
+        if (clean && !candidateKeys.includes(clean)) candidateKeys.push(clean);
+      }
+    };
+    if (clientKey) pushKey(clientKey);
+    pushKey(process.env.GEMINI_API_KEY);
+    pushKey(process.env.GEMINI_BACKUP_API_KEY);
+    pushKey(process.env.GEMINI_API_KEYS);
+    pushKey(process.env.VITE_GEMINI_API_KEY);
 
-    if (!activeKey) {
+    if (candidateKeys.length === 0) {
       return res.status(401).json({ error: 'Kein API-Schlüssel konfiguriert.' });
     }
 
@@ -76,28 +87,40 @@ export default async function handler(req: any, res: any) {
       : 768;
     const taskType = body.taskType === 'RETRIEVAL_DOCUMENT' ? 'RETRIEVAL_DOCUMENT' : 'RETRIEVAL_QUERY';
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${encodeURIComponent(activeKey)}`;
-    const apiRes = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(25000),
-      body: JSON.stringify({
-        model: 'models/gemini-embedding-001',
-        content: { parts: [{ text }] },
-        taskType,
-        outputDimensionality: requestedDim
-      })
-    });
+    let lastStatus = 502;
+    let lastErr = 'Unbekannter Embedding-Fehler';
+    for (const activeKey of candidateKeys) {
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${encodeURIComponent(activeKey)}`;
+        const apiRes = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(25000),
+          body: JSON.stringify({
+            model: 'models/gemini-embedding-001',
+            content: { parts: [{ text }] },
+            taskType,
+            outputDimensionality: requestedDim
+          })
+        });
 
-    if (!apiRes.ok) {
-      const errData = await apiRes.json().catch(() => ({}));
-      return res.status(apiRes.status).json({ error: errData?.error?.message || `HTTP ${apiRes.status}` });
+        if (!apiRes.ok) {
+          const errData = await apiRes.json().catch(() => ({}));
+          lastStatus = apiRes.status;
+          lastErr = errData?.error?.message || `HTTP ${apiRes.status}`;
+          continue;
+        }
+
+        const data = await apiRes.json();
+        return res.status(200).json({
+          embedding: data.embedding?.values || []
+        });
+      } catch (err: any) {
+        lastErr = err?.message || String(err);
+      }
     }
 
-    const data = await apiRes.json();
-    return res.status(200).json({
-      embedding: data.embedding?.values || []
-    });
+    return res.status(lastStatus).json({ error: lastErr });
   } catch (err: any) {
     return res.status(500).json({ error: err.message || 'Interner Serverfehler' });
   }

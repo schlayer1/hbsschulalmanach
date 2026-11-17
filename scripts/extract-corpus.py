@@ -1067,8 +1067,16 @@ def chunk_law_pages(spec: dict, pages: list[tuple[int, str]]) -> list[dict]:
         sections.append(current)
 
     chunks = []
+    seen_para_one = False
     for sec in sections:
         body = "\n".join(sec["lines"]).strip()
+        if sec["paraNum"] == "1" and len(body) >= 80:
+            seen_para_one = True
+        # Inhaltsverzeichnis-Reste vor § 1 oder reine Überschriften-Fragmente ohne Satzinhalt überspringen
+        if not seen_para_one and len(body) < 120:
+            continue
+        if len(body) < 80 and "." not in body:
+            continue
         # Wenn Titel noch leer war, erste Zeile nehmen
         title = sec["title"]
         if not title and body:

@@ -1,13 +1,13 @@
 // Automatisch generierter Katalog-Index für den HBS Schulalmanach
-// Generiert am: 2026-11-17T16:58:05.355Z
-// Volltext-Chunks (3025) & echte gemini-embedding-001 Vektoren (768d) liegen lazy in /data/corpus-chunks.json & /data/corpus-embeddings.bin
+// Generiert am: 2026-11-17T20:54:14.368Z
+// Volltext-Chunks (3015) & echte gemini-embedding-001 Vektoren (768d) liegen lazy in /data/corpus-chunks.json & /data/corpus-embeddings.bin
 
 import { LegalDocument, LegalChunk } from '../types/almanach';
 
 export const CORPUS_STATS = {
-  generatedAt: '2026-11-17T16:58:05.355Z',
+  generatedAt: '2026-11-17T20:54:14.368Z',
   totalDocuments: 61,
-  totalChunks: 3025,
+  totalChunks: 3015,
   embeddingModel: 'gemini-embedding-001',
   embeddingDimensions: 768,
 };
@@ -44,7 +44,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
     "lastCheckedDate": "2026-11-16",
     "officialUrl": "https://landesrecht.thueringen.de/bsth/document/jlr-SchulOTHrahmen",
     "description": "Vollständige Durchführungsverordnung: Klassenarbeiten (§ 56), Hausaufgaben (§ 57), Leistungsbewertung, Versetzung, Abschlüsse & Konferenzen.",
-    "chunksCount": 250,
+    "chunksCount": 248,
     "tags": [
       "ThürSchulO",
       "Schulordnung",
@@ -66,7 +66,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
     "lastCheckedDate": "2026-11-16",
     "officialUrl": "https://landesrecht.thueringen.de/bsth/document/VVTH-VVTH000011051",
     "description": "Verbindliche Dienstordnung zu Rechten/Pflichten, Aufsichtspflicht & Hausrecht (§ 8), Arbeitszeit, Mehrarbeit, Fortbildung, Abwesenheit und Verschwiegenheit.",
-    "chunksCount": 58,
+    "chunksCount": 50,
     "tags": [
       "DienstO-L",
       "Lehrerdienstordnung",
