@@ -28,6 +28,7 @@ import {
 import { Header, ActiveTab } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { QuickStartTray } from './components/QuickStartTray';
+import { KnowledgeOverviewBanner } from './components/KnowledgeOverviewBanner';
 import { AnswerView } from './components/AnswerView';
 import { DirectMatchesList } from './components/DirectMatchesList';
 import { CitationDrawer } from './components/CitationDrawer';
@@ -50,6 +51,7 @@ export const App: React.FC = () => {
     usedSemanticEmbeddings: boolean;
   } | null>(null);
   const [explorerDocId, setExplorerDocId] = useState<string | null>(null);
+  const [explorerCategory, setExplorerCategory] = useState<string>('all');
   
   // Storage State
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
@@ -250,9 +252,17 @@ export const App: React.FC = () => {
               />
             </div>
 
-            {/* Schnellstart-Kacheln für den Schulalltag */}
+            {/* Schnellstart-Kacheln & Wissensdatenbank-Übersicht auf der Startseite */}
             {!currentAnswer && !liveMatches && !isLoading && (
-              <div className="max-w-5xl mx-auto w-full pt-2">
+              <div className="max-w-5xl mx-auto w-full pt-2 space-y-5">
+                <KnowledgeOverviewBanner
+                  corpusReady={corpusReady}
+                  onOpenCatalog={(catId = 'all') => {
+                    setExplorerDocId(null);
+                    setExplorerCategory(catId);
+                    setActiveTab('explorer');
+                  }}
+                />
                 <QuickStartTray
                   onSelectPrompt={handlePerformSearch}
                   isLoading={isLoading}
@@ -320,6 +330,7 @@ export const App: React.FC = () => {
               customChunks={customChunks}
               corpusReady={corpusReady}
               initialExpandedDocId={explorerDocId}
+              initialCategory={explorerCategory}
             />
           </div>
         )}
@@ -373,6 +384,7 @@ export const App: React.FC = () => {
           isBookmarked={bookmarks.some(b => b.title.includes(selectedChunk?.paragraph || ''))}
           onNavigateChunk={handleSelectChunkFromExplorer}
           onOpenDocument={(docId) => {
+            setExplorerCategory('all');
             setExplorerDocId(docId);
             setActiveTab('explorer');
           }}
