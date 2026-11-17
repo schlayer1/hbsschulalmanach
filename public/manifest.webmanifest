@@ -1,17 +1,33 @@
 {
+  "id": "/",
   "name": "HBS Schulalmanach",
   "short_name": "Almanach",
-  "description": "Thüringer Schulrecht, VVOrg, RISU und Richtlinien für die Heimbürgeschule Kahla",
+  "description": "Semantische Schulrechtssuche für die Staatliche Regelschule Heimbürgeschule Kahla",
+  "lang": "de",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#f8fafc",
   "theme_color": "#006185",
   "icons": [
     {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

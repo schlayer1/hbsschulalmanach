@@ -23,8 +23,6 @@ import {
   saveBookmark, 
   removeBookmark, 
   getCustomDocuments, 
-  saveCustomDocument, 
-  deleteCustomDocument, 
   getAppSettings, 
   saveAppSettings, 
   getQueryHistory, 
@@ -41,9 +39,9 @@ import { DirectMatchesList } from './components/DirectMatchesList';
 import { CitationDrawer } from './components/CitationDrawer';
 import { DocumentExplorer } from './components/DocumentExplorer';
 import { BookmarksView } from './components/BookmarksView';
-import { AdminDocManager } from './components/AdminDocManager';
 import { PrintReportModal } from './components/PrintReportModal';
 import { SettingsModal } from './components/SettingsModal';
+import { BackupModal } from './components/BackupModal';
 
 export const App: React.FC = () => {
   // Navigation & State
@@ -71,22 +69,48 @@ export const App: React.FC = () => {
   const [recentQueries, setRecentQueries] = useState<string[]>([]);
   const [settings, setSettings] = useState<AppSettings>(getAppSettings());
 
-  // Modals & Drawers
+  // Modals, Drawers & PWA Install Prompt
   const [selectedCitation, setSelectedCitation] = useState<VerifiedCitation | null>(null);
   const [selectedChunk, setSelectedChunk] = useState<LegalChunk | null>(null);
   const [showCitationDrawer, setShowCitationDrawer] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printAnswer, setPrintAnswer] = useState<AiAnswer | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showBackup, setShowBackup] = useState(false);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
 
-  // Initial Load from Storage & Lazy-Load Volltext-Korpus + Embeddings
+  // Initial Load from Storage, Corpus & PWA Install Listener
   useEffect(() => {
     setBookmarks(getBookmarks());
     setCustomDocs(getCustomDocuments());
     setRecentQueries(getQueryHistory());
     setSettings(getAppSettings());
     loadCorpus().then(() => setCorpusReady(true));
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+    };
+    const handleAppInstalled = () => {
+      setDeferredInstallPrompt(null);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, []);
+
+  const handleInstallPwa = async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    try {
+      await deferredInstallPrompt.userChoice;
+    } finally {
+      setDeferredInstallPrompt(null);
+    }
+  };
 
   // Custom Chunks aus schulinternen Dokumenten
   const customChunks = React.useMemo(() => {
@@ -261,7 +285,10 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         bookmarksCount={bookmarks.length}
+        onOpenBackup={() => setShowBackup(true)}
         onOpenSettings={() => setShowSettings(true)}
+        canInstallPwa={Boolean(deferredInstallPrompt)}
+        onInstallPwa={handleInstallPwa}
       />
 
       {/* 2. Main Fluid Container (nach responsive-school-apps Standard) */}
@@ -387,27 +414,6 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* TAB: SCHUL-PFLEGEBEREICH & DOKUMENTEN-MANAGER */}
-        {activeTab === 'admin' && (
-          <div className="max-w-5xl mx-auto w-full">
-            <AdminDocManager
-              customDocs={customDocs}
-              onSaveDoc={(doc) => {
-                saveCustomDocument(doc);
-                setCustomDocs(getCustomDocuments());
-              }}
-              onDeleteDoc={(id) => {
-                deleteCustomDocument(id);
-                setCustomDocs(getCustomDocuments());
-              }}
-              onRefresh={() => {
-                setCustomDocs(getCustomDocuments());
-                setBookmarks(getBookmarks());
-              }}
-            />
-          </div>
-        )}
-
       </main>
 
       {/* 3. In-App Paragraphen-Reader (Slide-Over Drawer) */}
@@ -447,15 +453,22 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* 6. Footer */}
+      {/* 6. Backup (.json) Modal */}
+      {showBackup && (
+        <BackupModal
+          onClose={() => setShowBackup(false)}
+          onRefresh={() => {
+            setCustomDocs(getCustomDocuments());
+            setBookmarks(getBookmarks());
+            setRecentQueries(getQueryHistory());
+          }}
+        />
+      )}
+
+      {/* 7. Footer */}
       <footer className="border-t border-school-border/40 bg-white/70 dark:bg-slate-900/70 py-4 mt-8 print:hidden">
-        <div className="w-full max-w-[2100px] mx-auto px-4 sm:px-6 text-center text-xs text-school-textMuted dark:text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>
-            <strong>Staatliche Regelschule Heimbürgeschule Kahla</strong> &middot; Schulalmanach mit RAG & RISU-Recherche
-          </div>
-          <div>
-            Rechtsstand: 2026 &middot; Vercel Secret Proxy aktiv &middot; PWA Ready für iPads
-          </div>
+        <div className="w-full max-w-[2100px] mx-auto px-4 sm:px-6 text-center text-xs font-medium text-school-textMuted dark:text-slate-400">
+          Semantische Schulrechtssuche
         </div>
       </footer>
 
