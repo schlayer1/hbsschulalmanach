@@ -1,5 +1,5 @@
 // Service Worker für HBS Schulalmanach (Offline-Support auf iPads)
-const CACHE_NAME = 'hbs-almanach-v2';
+const CACHE_NAME = 'hbs-almanach-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -37,12 +37,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Navigations-Anfragen (HTML / index.html): IMMER NETWORK-FIRST!
-  // Verhindert das "Stale index.html pointing to dead hashed assets"-Problem nach neuen Builds
+  // 2. Navigations-Anfragen & Korpus-Daten (/data/): NETWORK-FIRST mit Offline-Fallback!
+  // Verhindert veraltete Korpus-Stände oder tote Asset-Hashes nach Deployments
   const isNavigation = event.request.mode === 'navigate' || 
                        (event.request.headers.get('accept') || '').includes('text/html') ||
                        url.pathname === '/' || 
-                       url.pathname === '/index.html';
+                       url.pathname === '/index.html' ||
+                       url.pathname.startsWith('/data/');
 
   if (isNavigation) {
     event.respondWith(
@@ -57,8 +58,7 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          // Offline-Fallback wenn kein Netz vorhanden ist
-          return caches.match('/index.html') || caches.match('/');
+          return caches.match(event.request).then((hit) => hit || caches.match('/index.html') || caches.match('/'));
         })
     );
     return;

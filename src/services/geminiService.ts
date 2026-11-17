@@ -1,5 +1,5 @@
 import { LegalChunk, AiAnswer, ActionStep, VerifiedCitation } from '../types/almanach';
-import { LEGAL_CHUNKS } from '../data/legalCorpus';
+import { getLoadedCorpusSync } from './corpusLoader';
 
 interface GenerateAnswerParams {
   query: string;
@@ -133,8 +133,9 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
       // 1. Primär: Exakte sourceChunkId in relevantChunks oder Gesamtkorpus
       const requestedId = cit.sourceChunkId || cit.chunkId;
       if (requestedId) {
+        const loadedChunks = getLoadedCorpusSync().chunks;
         matchedChunk = relevantChunks.find(c => c.id === requestedId)
-                    || LEGAL_CHUNKS.find(c => c.id === requestedId);
+                    || loadedChunks.find(c => c.id === requestedId);
       }
 
       // 2. Sekundär: Falls Modell noch Paragraphen-Text gesendet hat
@@ -167,11 +168,12 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
       // Verifizierte Fundstelle: Alle Daten stammen VERBINDLICH aus der Datenbank!
       enhancedCitations.push({
         id: `cit-${matchedChunk.id}-${idx}`,
-        paragraph: matchedChunk.paragraph, // GARANTIERT ECHT (z.B. "Abschnitt VII VV Wandertage & Klassenfahrten")
+        paragraph: matchedChunk.paragraph, // GARANTIERT ECHT
         docTitle: matchedChunk.docShortTitle, // GARANTIERT ECHT
         quote: (cit.quote && cit.quote.length > 15) ? cit.quote : matchedChunk.summary,
         context: cit.context || matchedChunk.sectionTitle,
-        officialUrl: matchedChunk.officialAnchorUrl, // Echte Landesrecht-URL
+        officialUrl: matchedChunk.officialAnchorUrl, // Echte Landesrecht-/Portal-URL
+        pageLabel: matchedChunk.pageLabel,
         relevanceScore: 0.95 - (idx * 0.05),
         chunkId: matchedChunk.id, // 100% IDENTISCH MIT CHUNK
       });
@@ -180,7 +182,7 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
     // Falls LLM-Fehlformatierung keine validen Chunks zurückgab:
     // Nutze automatisch die Top-Chunks aus der Suchmaschine!
     if (enhancedCitations.length === 0 && relevantChunks.length > 0) {
-      for (let i = 0; i < Math.min(2, relevantChunks.length); i++) {
+      for (let i = 0; i < Math.min(3, relevantChunks.length); i++) {
         const c = relevantChunks[i];
         enhancedCitations.push({
           id: `cit-${c.id}-verified`,
@@ -189,6 +191,7 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
           quote: c.summary,
           context: c.sectionTitle,
           officialUrl: c.officialAnchorUrl,
+          pageLabel: c.pageLabel,
           relevanceScore: 0.9 - (i * 0.1),
           chunkId: c.id,
         });
@@ -211,13 +214,14 @@ Bitte erstelle die didaktisch-juristische Auswertung streng im geforderten JSON-
     // Robuster Offline- / Client-Fallback
     console.warn('KI-Proxy nicht erreichbar oder Antwort ungültig, erstelle Offline-Auswertung:', err.message);
 
-    const fallbackCitations: VerifiedCitation[] = relevantChunks.slice(0, 3).map((c, idx) => ({
+    const fallbackCitations: VerifiedCitation[] = relevantChunks.slice(0, 4).map((c, idx) => ({
       id: `cit-offline-${Date.now()}-${idx}`,
       paragraph: c.paragraph,
       docTitle: c.docShortTitle,
       quote: c.summary,
       context: c.sectionTitle,
       officialUrl: c.officialAnchorUrl,
+      pageLabel: c.pageLabel,
       relevanceScore: 0.9 - idx * 0.1,
       chunkId: c.id,
     }));

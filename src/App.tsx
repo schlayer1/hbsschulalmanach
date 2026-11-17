@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { 
   AiAnswer, 
   LegalChunk, 
+  SearchResult,
   VerifiedCitation, 
   BookmarkItem, 
   CustomDocument, 
   AppSettings 
 } from './types/almanach';
-import { searchCorpus, customDocsToChunks } from './services/searchEngine';
+import { searchCorpus, customDocsToChunks, fetchQueryEmbedding } from './services/searchEngine';
 import { generateLegalAnswer } from './services/geminiService';
+import { loadCorpus, getLoadedCorpusSync } from './services/corpusLoader';
 import { 
   getBookmarks, 
   saveBookmark, 
@@ -21,13 +23,13 @@ import {
   getQueryHistory, 
   addQueryHistory 
 } from './services/storageService';
-import { LEGAL_CHUNKS } from './data/legalCorpus';
 
 // Components
 import { Header, ActiveTab } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { QuickStartTray } from './components/QuickStartTray';
 import { AnswerView } from './components/AnswerView';
+import { DirectMatchesList } from './components/DirectMatchesList';
 import { CitationDrawer } from './components/CitationDrawer';
 import { DocumentExplorer } from './components/DocumentExplorer';
 import { BookmarksView } from './components/BookmarksView';
@@ -38,8 +40,16 @@ import { SettingsModal } from './components/SettingsModal';
 export const App: React.FC = () => {
   // Navigation & State
   const [activeTab, setActiveTab] = useState<ActiveTab>('search');
+  const [searchMode, setSearchMode] = useState<'ai' | 'docs'>('ai');
   const [isLoading, setIsLoading] = useState(false);
+  const [corpusReady, setCorpusReady] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState<AiAnswer | null>(null);
+  const [liveMatches, setLiveMatches] = useState<{
+    query: string;
+    results: SearchResult[];
+    usedSemanticEmbeddings: boolean;
+  } | null>(null);
+  const [explorerDocId, setExplorerDocId] = useState<string | null>(null);
   
   // Storage State
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
@@ -55,12 +65,13 @@ export const App: React.FC = () => {
   const [printAnswer, setPrintAnswer] = useState<AiAnswer | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Initial Load from Storage
+  // Initial Load from Storage & Lazy-Load Volltext-Korpus + Embeddings
   useEffect(() => {
     setBookmarks(getBookmarks());
     setCustomDocs(getCustomDocuments());
     setRecentQueries(getQueryHistory());
     setSettings(getAppSettings());
+    loadCorpus().then(() => setCorpusReady(true));
   }, []);
 
   // Custom Chunks aus schulinternen Dokumenten
@@ -68,33 +79,56 @@ export const App: React.FC = () => {
     return customDocsToChunks(customDocs);
   }, [customDocs]);
 
-  // Recherche ausführen (RAG Pipeline)
-  const handlePerformSearch = async (searchQuery: string, category: string) => {
+  // Recherche ausführen (Echte gemini-embedding-001 Vektor-Suche + optionale KI-Synthese)
+  const handlePerformSearch = async (searchQuery: string, category: string, modeOverride?: 'ai' | 'docs') => {
     if (!searchQuery.trim() || isLoading) return;
 
+    const effectiveMode = modeOverride || searchMode;
     setIsLoading(true);
+    setCurrentAnswer(null);
+    setLiveMatches(null);
     setActiveTab('search');
     addQueryHistory(searchQuery);
     setRecentQueries(getQueryHistory());
 
     try {
-      // 1. Lokales semantisches & Paragraphen-Matching
+      const corpus = await loadCorpus();
+      setCorpusReady(true);
+
+      // 1. Echten 768-dim Query-Vektor via /api/embed (gemini-embedding-001) anfordern
+      const queryEmbedding = await fetchQueryEmbedding(searchQuery, settings.apiKey);
+      const usedSemantic = Boolean(queryEmbedding && corpus.vectors);
+
+      // 2. Semantische Vektor- + Paragraphen- + Keyword-Suche über alle Dokumente
       const searchResults = searchCorpus(searchQuery, {
         categoryFilter: category,
         customChunks,
-        limit: 5,
+        queryEmbedding,
+        corpus,
+        limit: 10,
       });
 
-      const retrievedChunks = searchResults.map(r => r.chunk);
+      // Direkte Fundstellen sofort anzeigen (auch bevor die KI-Synthese fertig ist)
+      setLiveMatches({
+        query: searchQuery,
+        results: searchResults,
+        usedSemanticEmbeddings: usedSemantic,
+      });
 
-      // Falls keine exakten Chunks matchen, Fallback auf Top-Chunks der Kategorie oder Gesamtkorpus
-      const finalChunks = retrievedChunks.length > 0 
-        ? retrievedChunks 
-        : (category !== 'all' 
-            ? LEGAL_CHUNKS.filter(c => c.category === category).slice(0, 4) 
-            : LEGAL_CHUNKS.slice(0, 4));
+      if (effectiveMode === 'docs') {
+        setIsLoading(false);
+        return;
+      }
 
-      // 2. Synthese durch Gemini 3 Flash / Schul-Serverless-Proxy
+      const retrievedChunks = searchResults.slice(0, 6).map((r) => r.chunk);
+      const finalChunks =
+        retrievedChunks.length > 0
+          ? retrievedChunks
+          : category !== 'all'
+          ? corpus.chunks.filter((c) => c.category === category).slice(0, 4)
+          : corpus.chunks.slice(0, 4);
+
+      // 3. KI-Synthese durch Gemini-Schul-Proxy auf Basis der echten Fundstellen
       const answer = await generateLegalAnswer({
         query: searchQuery,
         relevantChunks: finalChunks,
@@ -102,7 +136,11 @@ export const App: React.FC = () => {
         customModel: settings.activeModel,
       });
 
-      setCurrentAnswer(answer);
+      setCurrentAnswer({
+        ...answer,
+        directMatches: searchResults,
+        usedSemanticEmbeddings: usedSemantic,
+      });
     } catch (err: any) {
       console.error('Fehler bei der Recherche:', err);
     } finally {
@@ -112,7 +150,7 @@ export const App: React.FC = () => {
 
   // Zitat öffnen (Drawer)
   const handleOpenCitation = (citation: VerifiedCitation) => {
-    const allAvailableChunks = [...LEGAL_CHUNKS, ...customChunks];
+    const allAvailableChunks = [...getLoadedCorpusSync().chunks, ...customChunks];
     let matchedChunk = allAvailableChunks.find(c => c.id === citation.chunkId);
     if (!matchedChunk && citation.paragraph) {
       const pLower = citation.paragraph.toLowerCase().trim();
@@ -125,7 +163,7 @@ export const App: React.FC = () => {
     setShowCitationDrawer(true);
   };
 
-  // Paragraphen aus dem Explorer öffnen
+  // Paragraphen aus dem Explorer oder der Trefferliste öffnen
   const handleSelectChunkFromExplorer = (chunk: LegalChunk) => {
     setSelectedChunk(chunk);
     setSelectedCitation({
@@ -135,6 +173,7 @@ export const App: React.FC = () => {
       quote: chunk.summary,
       context: chunk.sectionTitle,
       officialUrl: chunk.officialAnchorUrl,
+      pageLabel: chunk.pageLabel,
       relevanceScore: 1.0,
       chunkId: chunk.id,
     });
@@ -206,11 +245,13 @@ export const App: React.FC = () => {
                 onSearch={handlePerformSearch}
                 isLoading={isLoading}
                 recentQueries={recentQueries}
+                searchMode={searchMode}
+                onChangeSearchMode={setSearchMode}
               />
             </div>
 
             {/* Schnellstart-Kacheln für den Schulalltag */}
-            {!currentAnswer && !isLoading && (
+            {!currentAnswer && !liveMatches && !isLoading && (
               <div className="max-w-5xl mx-auto w-full pt-2">
                 <QuickStartTray
                   onSelectPrompt={handlePerformSearch}
@@ -221,29 +262,49 @@ export const App: React.FC = () => {
 
             {/* Loading Indicator */}
             {isLoading && (
-              <div className="max-w-4xl mx-auto w-full p-8 sm:p-12 text-center bg-white dark:bg-slate-800 rounded-2xl border border-school-border/50 shadow-soft space-y-4 animate-pulse">
-                <div className="w-12 h-12 border-4 border-school-primary/20 border-t-school-primary rounded-full animate-spin mx-auto" />
+              <div className="max-w-4xl mx-auto w-full p-6 sm:p-10 text-center bg-white dark:bg-slate-800 rounded-2xl border border-school-border/50 shadow-soft space-y-3 animate-pulse">
+                <div className="w-10 h-10 border-4 border-school-primary/20 border-t-school-primary rounded-full animate-spin mx-auto" />
                 <div className="space-y-1">
                   <h3 className="font-extrabold text-base sm:text-lg text-school-textMain dark:text-white">
-                    Recherchiere im Thüringer Schulrecht & Sicherheitsvorschriften...
+                    {liveMatches
+                      ? 'Erstelle strukturierte KI-Antwort auf Basis der Fundstellen...'
+                      : 'Durchsuche alle schulrechtlichen Dokumente per KI-Embedding...'}
                   </h3>
                   <p className="text-xs sm:text-sm text-school-textMuted dark:text-slate-400">
-                    Gleiche Paragraphen aus ThürSchulG, ThürSchulO, VVOrg und RISU ab & erstelle verifizierte Fundstellen.
+                    {liveMatches
+                      ? 'Die direkten Dokumententreffer unten kannst du bereits jetzt öffnen.'
+                      : 'Vergleiche deine Frage semantisch mit über 3.000 Abschnitten aus Gesetzen, Verordnungen & HBS-Konzepten.'}
                   </p>
                 </div>
               </div>
             )}
 
-            {/* 3-Stufen-Antwortansicht */}
+            {/* Direkte Fundstellen (sofort im Modus "Nur Embeddingsuche" oder als Live-Vorschau während KI lädt) */}
+            {liveMatches && !currentAnswer && (
+              <div className="max-w-5xl mx-auto w-full">
+                <DirectMatchesList
+                  query={liveMatches.query}
+                  results={liveMatches.results}
+                  usedSemanticEmbeddings={liveMatches.usedSemanticEmbeddings}
+                  onOpenInDocument={handleSelectChunkFromExplorer}
+                />
+              </div>
+            )}
+
+            {/* 3-Stufen-Antwortansicht inkl. direkter Fundstellen */}
             {currentAnswer && !isLoading && (
               <div className="max-w-5xl mx-auto w-full">
                 <AnswerView
                   answer={currentAnswer}
                   onOpenCitation={handleOpenCitation}
+                  onOpenInDocument={handleSelectChunkFromExplorer}
                   onSaveBookmark={handleSaveAnswerBookmark}
                   isBookmarked={bookmarks.some(b => b.title === currentAnswer.query)}
                   onPrintReport={handleOpenPrint}
-                  onResetSearch={() => setCurrentAnswer(null)}
+                  onResetSearch={() => {
+                    setCurrentAnswer(null);
+                    setLiveMatches(null);
+                  }}
                 />
               </div>
             )}
@@ -257,6 +318,8 @@ export const App: React.FC = () => {
             <DocumentExplorer
               onSelectChunk={handleSelectChunkFromExplorer}
               customChunks={customChunks}
+              corpusReady={corpusReady}
+              initialExpandedDocId={explorerDocId}
             />
           </div>
         )}
@@ -308,6 +371,11 @@ export const App: React.FC = () => {
           onClose={() => setShowCitationDrawer(false)}
           onBookmarkChunk={handleSaveChunkBookmark}
           isBookmarked={bookmarks.some(b => b.title.includes(selectedChunk?.paragraph || ''))}
+          onNavigateChunk={handleSelectChunkFromExplorer}
+          onOpenDocument={(docId) => {
+            setExplorerDocId(docId);
+            setActiveTab('explorer');
+          }}
         />
       )}
 

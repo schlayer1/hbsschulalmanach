@@ -107,10 +107,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-school-textMuted dark:text-slate-300">
               <HardDrive className="w-4 h-4 text-emerald-600" />
-              Lokale Wissensdatenbank (Heimbürgeschule)
+              Volltext- &amp; Embedding-Datenbank (gemini-embedding-001, 768d)
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              17 offizielle Thüringer Rechtsvorschriften und Richtlinien (ThürSchulG, ThürSchulO, VVOrg, VV Wandertage und Klassenfahrten, RISU/UKT, LAA, Seiteneinsteiger, Duales Studium, DienstO-L, Dienstanweisung Gewalt/Kinderschutz, Nachteilsausgleich, Medikamentengabe, Korruptionsprävention, ThürLehrAzVO, ThürPersVG, ThürDSG & HBS Hausordnung) sind lückenlos vorindexiert.
+              Über 60 vollständige Thüringer Rechtsvorschriften, Verwaltungsvorschriften, Handreichungen (ThürSchulG, ThürSchulO, VVOrg 2026/27, RiSU, DienstO-L, Kinderschutz, Nachteilsausgleich, Schulkonten) sowie schulinterne HBS-Dokumente (Schutzkonzept, Konzeptpapier, Projektarbeit, Hausordnung) sind mit echten 768-dim Vektoren indiziert.
             </p>
           </div>
 

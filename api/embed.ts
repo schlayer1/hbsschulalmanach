@@ -74,8 +74,9 @@ export default async function handler(req: any, res: any) {
     const requestedDim = typeof body.outputDimensionality === 'number' && body.outputDimensionality > 0
       ? Math.min(3072, Math.max(128, Math.floor(body.outputDimensionality)))
       : 768;
+    const taskType = body.taskType === 'RETRIEVAL_DOCUMENT' ? 'RETRIEVAL_DOCUMENT' : 'RETRIEVAL_QUERY';
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${activeKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${encodeURIComponent(activeKey)}`;
     const apiRes = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -83,9 +84,8 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({
         model: 'models/gemini-embedding-001',
         content: { parts: [{ text }] },
-        embedContentConfig: {
-          outputDimensionality: requestedDim
-        }
+        taskType,
+        outputDimensionality: requestedDim
       })
     });
 

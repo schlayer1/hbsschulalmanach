@@ -1,6 +1,7 @@
 import React from 'react';
 import { 
   AiAnswer, 
+  LegalChunk,
   VerifiedCitation 
 } from '../types/almanach';
 import { 
@@ -17,10 +18,12 @@ import {
   BookOpen
 } from 'lucide-react';
 import { CATEGORIES } from '../data/categories';
+import { DirectMatchesList } from './DirectMatchesList';
 
 interface AnswerViewProps {
   answer: AiAnswer;
   onOpenCitation: (citation: VerifiedCitation) => void;
+  onOpenInDocument: (chunk: LegalChunk) => void;
   onSaveBookmark: (answer: AiAnswer) => void;
   isBookmarked: boolean;
   onPrintReport: (answer: AiAnswer) => void;
@@ -30,6 +33,7 @@ interface AnswerViewProps {
 export const AnswerView: React.FC<AnswerViewProps> = ({
   answer,
   onOpenCitation,
+  onOpenInDocument,
   onSaveBookmark,
   isBookmarked,
   onPrintReport,
@@ -260,6 +264,16 @@ export const AnswerView: React.FC<AnswerViewProps> = ({
           ))}
         </div>
       </div>
+
+      {/* DIREKTE EMBEDDING-FUNDSTELLEN MIT DOPPEL-LINK */}
+      {answer.directMatches && answer.directMatches.length > 0 && (
+        <DirectMatchesList
+          query={answer.query}
+          results={answer.directMatches}
+          usedSemanticEmbeddings={Boolean(answer.usedSemanticEmbeddings)}
+          onOpenInDocument={onOpenInDocument}
+        />
+      )}
 
     </div>
   );

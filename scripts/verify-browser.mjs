@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import { createServer } from 'vite';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -8,8 +9,8 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
 async function runVerification() {
-  console.log('🚀 STARTE VOLLSTÄNDIGE BROWSER-VERIFIKATION AUF IPAD...');
-  
+  console.log('🚀 STARTE VOLLSTÄNDIGE BROWSER-VERIFIKATION (REAL EMBEDDINGS + IN-DOC + ONLINE-LINKS)...');
+
   const server = await createServer({
     configFile: path.join(projectRoot, 'vite.config.ts'),
     server: { port: 5192 },
@@ -19,14 +20,21 @@ async function runVerification() {
 
   let browser;
   try {
+    const macChrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
     browser = await puppeteer.launch({
       headless: 'new',
+      ...(fs.existsSync(macChrome) ? { executablePath: macChrome } : {}),
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     const page = await browser.newPage();
-    // iPad Pro Viewport (1024x768 @ 2x Retina)
     await page.setViewport({ width: 1024, height: 768, deviceScaleFactor: 2 });
+
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') errors.push(msg.text());
+    });
 
     await page.goto('http://localhost:5192', { waitUntil: 'networkidle0' });
 
@@ -34,82 +42,109 @@ async function runVerification() {
     const title = await page.title();
     console.log(`📄 Seitentitel: "${title}"`);
     await page.screenshot({ path: path.join(projectRoot, 'scripts', 'screenshot-1-ipad-home.png') });
-    console.log('📸 Screenshot 1: Startbildschirm auf iPad');
 
-    // 2. Recherche durchführen
-    console.log('👉 Führe Rechtsrecherche durch: "Darf ich einen Schüler suspendieren § 51"...');
-    await page.type('input[type="text"]', 'Darf ich einen Schüler suspendieren § 51');
+    // 2. Modus "Nur Embeddingsuche (Sofort)" testen mit Alltagssprache (OHNE §-Nummer!)
+    await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button')).find((b) =>
+        b.innerText.includes('Nur Embeddingsuche')
+      );
+      if (btn) btn.click();
+    });
+
+    const query = 'Schüler schlägt anderen auf dem Schulhof was darf ich sofort tun';
+    console.log(`👉 Teste Alltagssprache-Embeddingsuche: "${query}"`);
+    await page.type('input[type="text"]', query);
     await page.click('button[type="submit"]');
 
-    // Warten auf Antwortansicht
     await page.waitForFunction(
-      () => document.body.innerText.includes('SCHNELLES PRAXIS-FAZIT') || document.body.innerText.includes('Stufe 1'),
-      { timeout: 8000 }
+      () =>
+        document.body.innerText.includes('Direkte Fundstellen in den Dokumenten') &&
+        document.body.innerText.includes('Im Dokument öffnen'),
+      { timeout: 15000 }
     );
-    console.log('✅ 3-Stufen-Praxisantwort gerendert!');
+
+    const searchReport = await page.evaluate(() => {
+      const txt = document.body.innerText;
+      return {
+        hasEmbeddingBadge: txt.includes('KI-Embedding aktiv'),
+        hasOfflineBadge: txt.includes('Offline-Suche'),
+        hasOnlineRef: txt.includes('Online-Referenz'),
+        has51OrViolence: txt.includes('§ 51') || txt.includes('Gewalt') || txt.includes('Ordnungsmaßnahme'),
+        topCards: Array.from(document.querySelectorAll('article h4')).slice(0, 5).map((h) => h.textContent),
+      };
+    });
+    console.log('🔍 Suchergebnis:', JSON.stringify(searchReport));
+    if (!searchReport.hasEmbeddingBadge) {
+      throw new Error('KI-Embedding Badge war nicht aktiv (erwartet echte gemini-embedding-001 Live-Suche)!');
+    }
+    if (!searchReport.has51OrViolence) {
+      throw new Error('Weder § 51 noch Gewalt/Ordnungsmaßnahme in den Top-Treffern!');
+    }
     await page.screenshot({ path: path.join(projectRoot, 'scripts', 'screenshot-2-antwort-stufe123.png') });
-    console.log('📸 Screenshot 2: 3-Stufen-Antwort mit Paragraphenzitaten');
 
-    // 3. Auf Merkzettel pinnen
-    console.log('👉 Klicke "Auf Merkzettel"...');
-    const bookmarkBtn = await page.evaluateHandle(() => {
-      const btns = Array.from(document.querySelectorAll('button'));
-      return btns.find(b => b.innerText.includes('Auf Merkzettel'));
-    });
-    if (bookmarkBtn) {
-      await bookmarkBtn.click();
-      console.log('✅ Antwort erfolgreich auf Merkzettel gepinnt');
-    }
-
-    // 4. In-App Paragraphen-Reader (Drawer) öffnen
-    console.log('👉 Öffne In-App Paragraphen-Reader für § 51...');
-    const citationCard = await page.waitForSelector('.cursor-pointer');
-    if (citationCard) {
-      // Klicke auf die erste Fundstellen-Karte
-      await page.evaluate(() => {
-        const cards = Array.from(document.querySelectorAll('div')).filter(d => d.innerText.includes('§ 51 Abs.'));
-        if (cards.length > 0) cards[0].click();
-      });
-      await new Promise(r => setTimeout(r, 600));
-      await page.screenshot({ path: path.join(projectRoot, 'scripts', 'screenshot-3-paragraphen-reader.png') });
-      console.log('📸 Screenshot 3: In-App Paragraphen-Reader (Drawer)');
-
-      // Drawer schließen
-      await page.evaluate(() => {
-        const closeBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Schließen'));
-        if (closeBtn) closeBtn.click();
-      });
-      await new Promise(r => setTimeout(r, 400));
-    }
-
-    // 5. Tab Gesetzeskatalog testen
-    console.log('👉 Wechsle in den Tab "Gesetzeskatalog"...');
+    // 3. "Im Dokument öffnen" testen -> Native <dialog> Reader + Nachbar-Navigation
+    console.log('👉 Öffne ersten Treffer im Dokumenten-Reader...');
     await page.evaluate(() => {
-      const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Gesetzeskatalog'));
+      const btn = Array.from(document.querySelectorAll('button')).find((b) =>
+        b.innerText.includes('Im Dokument öffnen')
+      );
       if (btn) btn.click();
     });
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
+
+    const drawerInfo = await page.evaluate(() => {
+      const dlg = document.querySelector('dialog');
+      const titleEl = document.querySelector('[data-testid="drawer-paragraph-title"]');
+      const hasPrevNext =
+        document.body.innerText.includes('Vorheriger') && document.body.innerText.includes('Nächster');
+      return {
+        isOpen: Boolean(dlg && dlg.open),
+        title: titleEl?.textContent,
+        hasPrevNext,
+      };
+    });
+    console.log('📖 Drawer-Status:', JSON.stringify(drawerInfo));
+    if (!drawerInfo.isOpen || !drawerInfo.hasPrevNext) {
+      throw new Error('CitationDrawer <dialog> oder Vorheriger/Nächster-Navigation fehlt!');
+    }
+    await page.screenshot({ path: path.join(projectRoot, 'scripts', 'screenshot-3-paragraphen-reader.png') });
+
+    // Drawer schließen
+    await page.evaluate(() => {
+      const dlg = document.querySelector('dialog');
+      if (dlg) dlg.close();
+    });
+    await new Promise((r) => setTimeout(r, 300));
+
+    // 4. Gesetzeskatalog (61 Dokumente) prüfen
+    console.log('👉 Wechsle in den Gesetzeskatalog...');
+    await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button')).find((b) =>
+        b.innerText.includes('Gesetzeskatalog')
+      );
+      if (btn) btn.click();
+    });
+    await new Promise((r) => setTimeout(r, 500));
+    const docCountText = await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button')).find((b) =>
+        b.innerText.includes('Alle Dokumente')
+      );
+      return btn?.innerText || '';
+    });
+    console.log('📚 Katalog-Button:', docCountText);
     await page.screenshot({ path: path.join(projectRoot, 'scripts', 'screenshot-4-gesetzeskatalog.png') });
-    console.log('📸 Screenshot 4: Gesetzeskatalog mit 12 Rechtsquellen');
 
-    // 6. Tab Merkzettel testen
-    console.log('👉 Wechsle in den Tab "Merkzettel"...');
-    await page.evaluate(() => {
-      const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Merkzettel'));
-      if (btn) btn.click();
-    });
-    await new Promise(r => setTimeout(r, 500));
-    await page.screenshot({ path: path.join(projectRoot, 'scripts', 'screenshot-5-merkzettel.png') });
-    console.log('📸 Screenshot 5: Merkzettel mit MDM-Backup-Funktion');
-
-    console.log('🎉 BROWSER-VERIFIKATION ERFOLGREICH ABGESCHLOSSEN!');
+    if (errors.length > 0) {
+      console.warn('⚠️ Konsolen-/Seitenfehler:', errors);
+    }
+    console.log('🎉 BROWSER-VERIFIKATION ERFOLGREICH!');
   } finally {
     if (browser) await browser.close();
     await server.close();
   }
 }
 
-runVerification().catch(err => {
+runVerification().catch((err) => {
   console.error('❌ FEHLER:', err);
   process.exit(1);
 });

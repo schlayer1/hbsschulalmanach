@@ -3,10 +3,12 @@ import { Search, Mic, MicOff, X, ArrowRight, Sparkles, History, Filter } from 'l
 import { CATEGORIES } from '../data/categories';
 
 interface SearchBarProps {
-  onSearch: (query: string, category: string) => void;
+  onSearch: (query: string, category: string, mode?: 'ai' | 'docs') => void;
   isLoading: boolean;
   recentQueries: string[];
   initialQuery?: string;
+  searchMode?: 'ai' | 'docs';
+  onChangeSearchMode?: (mode: 'ai' | 'docs') => void;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -14,6 +16,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   isLoading,
   recentQueries,
   initialQuery = '',
+  searchMode = 'ai',
+  onChangeSearchMode,
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -43,7 +47,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     if (e) e.preventDefault();
     if (!query.trim() || isLoading) return;
     setShowHistory(false);
-    onSearch(query.trim(), selectedCategory);
+    onSearch(query.trim(), selectedCategory, searchMode);
   };
 
   // Spracheingabe via Web Speech API (iPad Safari & Chrome)
@@ -96,7 +100,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const handleSelectRecent = (q: string) => {
     setQuery(q);
     setShowHistory(false);
-    onSearch(q, selectedCategory);
+    onSearch(q, selectedCategory, searchMode);
   };
 
   return (
@@ -119,7 +123,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             onFocus={() => {
               if (recentQueries.length > 0 && !query) setShowHistory(true);
             }}
-            placeholder="Frag das Thüringer Schulrecht (z. B. 'Darf ich einen Schüler suspendieren?', 'Klassenarbeit 2 Tage')"
+            placeholder="Frage in Alltagssprache stellen (z. B. 'Schüler schlägt auf Schulhof', 'Nachteilsausgleich LRS', 'Klassenfahrt Geld')"
             className="w-full py-4 sm:py-5 px-3 sm:px-4 text-base sm:text-lg text-school-textMain dark:text-white bg-transparent outline-none placeholder:text-slate-400"
             disabled={isLoading}
           />
@@ -169,7 +173,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span className="hidden sm:inline">Recherchieren</span>
+                  <span className="hidden sm:inline">{searchMode === 'docs' ? 'Fundstellen suchen' : 'Recherchieren'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -202,6 +206,41 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           </div>
         )}
       </form>
+
+      {/* Modus-Umschalter + Kategorie-Filter */}
+      {onChangeSearchMode && (
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200/80 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={() => onChangeSearchMode('ai')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
+                searchMode === 'ai'
+                  ? 'bg-white dark:bg-slate-700 text-school-primary dark:text-sky-300 shadow-xs'
+                  : 'text-school-textMuted dark:text-slate-400 hover:text-school-textMain'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>KI-Antwort + Fundstellen</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onChangeSearchMode('docs')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
+                searchMode === 'docs'
+                  ? 'bg-white dark:bg-slate-700 text-school-primary dark:text-sky-300 shadow-xs'
+                  : 'text-school-textMuted dark:text-slate-400 hover:text-school-textMain'
+              }`}
+            >
+              <Search className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Nur Embeddingsuche (Sofort)</span>
+            </button>
+          </div>
+          <span className="text-[11px] text-school-textMuted dark:text-slate-400">
+            Semantische Suche über alle 61 schulrechtlichen &amp; HBS-Dokumente
+          </span>
+        </div>
+      )}
 
       {/* Category Filter Pills (Fluid scroll on iPad) */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none touch-pan-x">

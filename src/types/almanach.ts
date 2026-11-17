@@ -39,12 +39,15 @@ export interface LegalChunk {
   docId: string;
   docShortTitle: string;
   category: DocumentCategory;
-  paragraph: string; // z. B. "§ 51 Abs. 2 ThürSchulG"
+  paragraph: string; // z. B. "§ 51 ThürSchulG"
   sectionTitle: string;
   text: string;
   summary: string;
   keyTakeaways: string[];
   officialAnchorUrl: string;
+  pageStart?: number;
+  pageEnd?: number;
+  pageLabel?: string;
   tags: string[];
   embedding?: number[];
 }
@@ -52,6 +55,7 @@ export interface LegalChunk {
 export interface SearchResult {
   chunk: LegalChunk;
   score: number;
+  semanticSimilarity?: number;
   matchType: 'exact_paragraph' | 'semantic' | 'keyword' | 'hybrid';
   highlightedText?: string;
 }
@@ -71,6 +75,7 @@ export interface VerifiedCitation {
   quote: string;
   context: string;
   officialUrl: string;
+  pageLabel?: string;
   relevanceScore: number;
   chunkId: string;
 }
@@ -81,6 +86,8 @@ export interface AiAnswer {
   actionSteps: ActionStep[];
   exceptionsAndRules: string[];
   citations: VerifiedCitation[];
+  directMatches?: SearchResult[];
+  usedSemanticEmbeddings?: boolean;
   category: DocumentCategory;
   confidenceScore: number;
   usedModel: string;

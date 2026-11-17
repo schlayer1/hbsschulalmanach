@@ -1,4 +1,4 @@
-import { defineConfig, Plugin } from 'vite';
+import { defineConfig, loadEnv, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const CANDIDATE_FLASH_MODELS = [
@@ -10,7 +10,14 @@ const CANDIDATE_FLASH_MODELS = [
   'gemini-flash-latest',
 ];
 
-function geminiLocalProxyPlugin(): Plugin {
+function geminiLocalProxyPlugin(localEnv: Record<string, string>): Plugin {
+  const getServerKey = () => (
+    process.env.GEMINI_API_KEY ||
+    process.env.VITE_GEMINI_API_KEY ||
+    localEnv.GEMINI_API_KEY ||
+    localEnv.VITE_GEMINI_API_KEY ||
+    ''
+  ).trim();
   return {
     name: 'gemini-local-proxy',
     configureServer(server) {
@@ -47,7 +54,7 @@ function geminiLocalProxyPlugin(): Plugin {
               const clientKey = (typeof body.apiKey === 'string' && body.apiKey.trim() !== 'serverless-proxy')
                 ? body.apiKey.trim()
                 : '';
-              const serverKey = (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '').trim();
+              const serverKey = getServerKey();
               const activeKey = clientKey || serverKey;
 
               if (!activeKey) {
@@ -155,7 +162,7 @@ function geminiLocalProxyPlugin(): Plugin {
               const clientKey = (typeof body.apiKey === 'string' && body.apiKey.trim() !== 'serverless-proxy')
                 ? body.apiKey.trim()
                 : '';
-              const serverKey = (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '').trim();
+              const serverKey = getServerKey();
               const activeKey = clientKey || serverKey;
 
               if (!activeKey || !text) {
@@ -165,10 +172,11 @@ function geminiLocalProxyPlugin(): Plugin {
                 return;
               }
 
-              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${activeKey}`;
               const requestedDim = typeof body.outputDimensionality === 'number' && body.outputDimensionality > 0
                 ? Math.min(3072, Math.max(128, Math.floor(body.outputDimensionality)))
                 : 768;
+              const taskType = body.taskType === 'RETRIEVAL_DOCUMENT' ? 'RETRIEVAL_DOCUMENT' : 'RETRIEVAL_QUERY';
+              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${encodeURIComponent(activeKey)}`;
               const apiRes = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -176,9 +184,8 @@ function geminiLocalProxyPlugin(): Plugin {
                 body: JSON.stringify({
                   model: 'models/gemini-embedding-001',
                   content: { parts: [{ text }] },
-                  embedContentConfig: {
-                    outputDimensionality: requestedDim
-                  }
+                  taskType,
+                  outputDimensionality: requestedDim
                 })
               });
 
@@ -209,8 +216,10 @@ function geminiLocalProxyPlugin(): Plugin {
   };
 }
 
-export default defineConfig({
-  plugins: [react(), geminiLocalProxyPlugin()],
+export default defineConfig(({ mode }) => {
+  const localEnv = loadEnv(mode, process.cwd(), '');
+  return {
+    plugins: [react(), geminiLocalProxyPlugin(localEnv)],
   server: {
     port: 5173,
     host: true,
@@ -220,5 +229,6 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     chunkSizeWarningLimit: 1200,
-  }
+  },
+  };
 });

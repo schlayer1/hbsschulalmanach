@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "build-corpus": "node scripts/build-full-corpus.mjs",
+    "build-corpus": "python3 scripts/extract-corpus.py && node scripts/build-embeddings.mjs",
+    "build-embeddings": "node scripts/build-embeddings.mjs",
     "ingest-law": "node scripts/ingest-law.mjs",
     "update-almanach": "node scripts/update-almanach.mjs",
     "test": "node scripts/test-almanach.mjs"

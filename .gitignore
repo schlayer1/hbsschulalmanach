@@ -6,3 +6,7 @@ dist
 *.log
 .projectatlas/projectatlas.db-shm
 .projectatlas/projectatlas.db-wal
+scripts/.extracted-corpus.json
+scripts/.embedding-cache.json
+docs/originals/
+docs/hbs_intern/

@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { LegalDocument, LegalChunk } from '../types/almanach';
-import { LEGAL_DOCUMENTS, LEGAL_CHUNKS } from '../data/legalCorpus';
+import React, { useState, useMemo, useEffect } from 'react';
+import { LegalChunk } from '../types/almanach';
+import { getLoadedCorpusSync } from '../services/corpusLoader';
 import { CATEGORIES } from '../data/categories';
 import { 
   Search, 
@@ -8,8 +8,6 @@ import {
   ChevronRight, 
   ChevronDown, 
   BookOpen, 
-  Scale, 
-  FileCheck, 
   Calendar, 
   ShieldCheck,
   FolderOpen
@@ -18,21 +16,33 @@ import {
 interface DocumentExplorerProps {
   onSelectChunk: (chunk: LegalChunk) => void;
   customChunks?: LegalChunk[];
+  corpusReady?: boolean;
+  initialExpandedDocId?: string | null;
 }
 
 export const DocumentExplorer: React.FC<DocumentExplorerProps> = ({
   onSelectChunk,
   customChunks = [],
+  corpusReady = false,
+  initialExpandedDocId = null,
 }) => {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
-  const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
+  const [expandedDocId, setExpandedDocId] = useState<string | null>(initialExpandedDocId);
 
-  const allChunks = useMemo(() => [...LEGAL_CHUNKS, ...customChunks], [customChunks]);
+  useEffect(() => {
+    if (initialExpandedDocId) {
+      setExpandedDocId(initialExpandedDocId);
+    }
+  }, [initialExpandedDocId]);
+
+  const loaded = getLoadedCorpusSync();
+  const documents = loaded.documents;
+  const allChunks = useMemo(() => [...loaded.chunks, ...customChunks], [loaded.chunks, customChunks, corpusReady]);
 
   // Gefilterte Dokumente
   const filteredDocs = useMemo(() => {
-    return LEGAL_DOCUMENTS.filter((doc) => {
+    return documents.filter((doc) => {
       // 1. Kategorie-Filter
       if (selectedCat !== 'all' && doc.category !== selectedCat) {
         return false;
@@ -104,7 +114,7 @@ export const DocumentExplorer: React.FC<DocumentExplorerProps> = ({
                 : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
             }`}
           >
-            Alle Dokumente ({LEGAL_DOCUMENTS.length})
+            Alle Dokumente ({documents.length})
           </button>
 
           {Object.values(CATEGORIES).map((cat) => (
@@ -180,21 +190,21 @@ export const DocumentExplorer: React.FC<DocumentExplorerProps> = ({
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                    {doc.officialUrl && doc.officialUrl !== '#' && (
+                    {doc.officialUrl && doc.officialUrl.startsWith('http') && (
                       <a
                         href={doc.officialUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         className="p-2 rounded-xl text-slate-400 hover:text-school-primary hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                        title="Im Thüringer Landesrecht öffnen"
+                        title="Offizielle Online-Referenz öffnen"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     )}
 
                     <div className="flex items-center gap-1.5 text-xs font-bold text-school-primary dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-3 py-1.5 rounded-xl border border-sky-200 dark:border-sky-800">
-                      <span>{docChunks.length} Paragraphen</span>
+                      <span>{docChunks.length || doc.chunksCount} Abschnitte</span>
                       {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                     </div>
                   </div>
